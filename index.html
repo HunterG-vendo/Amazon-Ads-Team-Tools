@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PLTFRM | Amazon Ads Team Tools</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&amp;display=swap" rel="stylesheet">
   <style>
     :root {
       --orange: #e85c2a;
@@ -737,14 +736,14 @@
     }
   </style>
 </head>
-<body>
+<body style="overflow: hidden;">
 
 <!-- HEADER -->
 <header>
   <div class="header-inner">
     <a href="#" class="logo">PLTFRM <span class="logo-dot"></span></a>
     <div class="header-actions">
-      <button class="beta-btn" id="open-beta-btn">&#43; Upload Beta</button>
+      <button class="beta-btn" id="open-beta-btn">+ Upload Beta</button>
       <button class="manage-btn" id="open-manager-btn">Manage Page</button>
     </div>
   </div>
@@ -760,17 +759,17 @@
   <div class="controls-row">
     <div class="search-wrap">
       <svg class="search-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/>
-        <line x1="8.8" y1="8.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4" fill="none"></circle>
+        <line x1="8.8" y1="8.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></line>
       </svg>
-      <input type="text" class="search-input" id="search-input" placeholder="Search tools..." autocomplete="off" />
-      <button class="search-clear" id="search-clear" style="display:none">&#x2715;</button>
+      <input type="text" class="search-input" id="search-input" placeholder="Search tools..." autocomplete="off">
+      <button class="search-clear" id="search-clear" style="display:none">✕</button>
     </div>
     <div class="sort-wrap">
       <svg class="sort-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-        <line x1="1" y1="3" x2="9" y2="3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-        <line x1="1" y1="7" x2="7" y2="7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-        <line x1="1" y1="11" x2="5" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="1" y1="3" x2="9" y2="3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></line>
+        <line x1="1" y1="7" x2="7" y2="7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></line>
+        <line x1="1" y1="11" x2="5" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></line>
       </svg>
       <select class="sort-select" id="sort-select">
         <option value="default">Default order</option>
@@ -781,29 +780,29 @@
     </div>
     <button class="filter-toggle-btn" id="filter-toggle-btn">
       <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-        <line x1="1" y1="3" x2="13" y2="3"/>
-        <line x1="1" y1="7" x2="13" y2="7"/>
-        <line x1="1" y1="11" x2="13" y2="11"/>
+        <line x1="1" y1="3" x2="13" y2="3"></line>
+        <line x1="1" y1="7" x2="13" y2="7"></line>
+        <line x1="1" y1="11" x2="13" y2="11"></line>
       </svg>
       Filters
       <span class="filter-active-label" id="filter-active-label"></span>
     </button>
   </div>
   <div class="filter-wrap">
-    <div class="filter-pills-row" id="filter-bar"></div>
+    <div class="filter-pills-row" id="filter-bar"><button class="filter-pill" data-cat="All" style="background:rgba(232,92,42,0.15);border-color:rgba(232,92,42,0.4);color:#ffb899;">All</button><button class="filter-pill" data-cat="Report Analyzers" style="border-color:rgba(232,92,42,0.25);color:rgba(232,92,42,0.7);"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#e85c2a;margin-right:6px;vertical-align:middle;"></span>Report Analyzers</button><button class="filter-pill" data-cat="Reporting" style="border-color:rgba(79,158,255,0.25);color:rgba(79,158,255,0.7);"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4f9eff;margin-right:6px;vertical-align:middle;"></span>Reporting</button><button class="filter-pill" data-cat="Bulk Optimizations" style="border-color:rgba(52,211,153,0.25);color:rgba(52,211,153,0.7);"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:6px;vertical-align:middle;"></span>Bulk Optimizations</button></div>
   </div>
 
   <!-- GRID -->
   <div class="tools-section">
-    <div class="tools-grid" id="tools-grid"></div>
+    <div class="tools-grid" id="tools-grid"><a class="tool-card" href="https://hunterg-vendo.github.io/Search-Term-Report-Analyzer/" target="_blank" rel="noopener"><div class="tool-card-top"><span class="tool-number">01</span><span class="tool-arrow">↗</span></div><div class="tool-name">Search Term Report Analyzer</div><div class="tool-desc">Upload a Sponsored Products Search Term report to surface new keyword and ASIN targets, identify wasted spend, and flag brand slippage — all in one pass.</div><div class="tool-author">By <span>Hunter G.</span></div><div class="tool-card-footer"><div class="tool-tags"><span class="tool-tag" style="color:#e85c2a;background:rgba(232,92,42,0.1);border:1px solid rgba(232,92,42,0.25);"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#e85c2a;margin-right:5px;vertical-align:middle;"></span>Report Analyzers</span><span class="tool-tag" style="color:#4f9eff;background:rgba(79,158,255,0.1);border:1px solid rgba(79,158,255,0.25);"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4f9eff;margin-right:5px;vertical-align:middle;"></span>Reporting</span></div></div></a><a class="tool-card" href="https://hunterg-vendo.github.io/Daypart-Analyzer/" target="_blank" rel="noopener"><div class="tool-card-top"><span class="tool-number">02</span><span class="tool-arrow">↗</span></div><div class="tool-name">Daypart Analyzer</div><div class="tool-desc">Analyze your Amazon Ads performance by hour and day of week to find the best bid adjustment windows and cut spend during low-converting time slots.</div><div class="tool-author">By <span>Hunter G.</span></div><div class="tool-card-footer"><div class="tool-tags"><span class="tool-tag" style="color:#e85c2a;background:rgba(232,92,42,0.1);border:1px solid rgba(232,92,42,0.25);"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#e85c2a;margin-right:5px;vertical-align:middle;"></span>Report Analyzers</span></div></div></a><a class="tool-card" href="https://rickygrossman5-wq.github.io/Monthly-Callouts-Generator/" target="_blank" rel="noopener"><div class="tool-card-top"><span class="tool-number">03</span><span class="tool-arrow">↗</span></div><div class="tool-name">Monthly Callouts Generator</div><div class="tool-desc">Generate polished monthly callout summaries fast — paste in your data and get client-ready performance highlights in seconds.</div><div class="tool-author">By <span>Ricky G.</span></div><div class="tool-card-footer"><div class="tool-tags"><span class="tool-tag" style="color:#4f9eff;background:rgba(79,158,255,0.1);border:1px solid rgba(79,158,255,0.25);"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4f9eff;margin-right:5px;vertical-align:middle;"></span>Reporting</span></div></div></a></div>
   </div>
 </div>
 
 <!-- FOOTER -->
-<footer>PLTFRM &mdash; Amazon Ads Tooling by Vendo</footer>
+<footer>PLTFRM — Amazon Ads Tooling by Vendo</footer>
 
 <!-- UPLOAD BETA OVERLAY -->
-<div class="beta-overlay" id="beta-overlay">
+<div class="beta-overlay open" id="beta-overlay">
   <div class="beta-panel">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
       <div>
@@ -811,18 +810,18 @@
         <div class="beta-title">Upload Beta Tool</div>
         <div class="beta-sub">Submit a tool for review. The manager will approve, deny, or leave feedback.</div>
       </div>
-      <button class="close-btn" id="close-beta-btn">&#x2715;</button>
+      <button class="close-btn" id="close-beta-btn">✕</button>
     </div>
 
     <!-- SUBMIT FORM -->
-    <div id="beta-form-section">
+    <div id="beta-form-section" style="display: none;">
       <div class="form-group">
         <label class="form-label">Tool Name</label>
-        <input type="text" class="form-input" id="beta-name" placeholder="e.g. Budget Pacing Tracker" />
+        <input type="text" class="form-input" id="beta-name" placeholder="e.g. Budget Pacing Tracker">
       </div>
       <div class="form-group">
         <label class="form-label">URL</label>
-        <input type="text" class="form-input" id="beta-url" placeholder="https://..." />
+        <input type="text" class="form-input" id="beta-url" placeholder="https://...">
       </div>
       <div class="form-group">
         <label class="form-label">Description</label>
@@ -830,29 +829,29 @@
       </div>
       <div class="form-group">
         <label class="form-label">Author</label>
-        <input type="text" class="form-input" id="beta-author" placeholder="Your name" />
+        <input type="text" class="form-input" id="beta-author" placeholder="Your name">
       </div>
       <div class="form-group">
         <label class="form-label">Tags</label>
-        <div class="tag-chips" id="beta-tag-chips"></div>
+        <div class="tag-chips" id="beta-tag-chips"><span class="tag-chip" data-cat="Report Analyzers" style=""><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#e85c2a;margin-right:5px;vertical-align:middle;"></span>Report Analyzers</span><span class="tag-chip" data-cat="Reporting" style=""><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4f9eff;margin-right:5px;vertical-align:middle;"></span>Reporting</span><span class="tag-chip" data-cat="Bulk Optimizations" style=""><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#34d399;margin-right:5px;vertical-align:middle;"></span>Bulk Optimizations</span></div>
       </div>
       <div class="form-group">
         <label class="form-label">Notes for reviewer <span style="color:var(--text-dim);font-weight:400">(optional)</span></label>
         <textarea class="form-textarea" id="beta-notes" placeholder="Anything the manager should know about this submission..."></textarea>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" id="beta-submit-btn">Submit for Review</button>
+        <button class="btn btn-primary" id="beta-submit-btn" disabled="">Pushing…</button>
         <button class="btn btn-secondary" id="beta-cancel-btn">Cancel</button>
       </div>
     </div>
 
     <!-- STATUS VIEW -->
-    <div id="beta-status-section" style="display:none">
+    <div id="beta-status-section" style="display: block;">
       <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text-mid);margin-bottom:12px;">Your submitted betas and their review status:</div>
-        <div id="beta-status-list"></div>
+        <div id="beta-status-list"><div class="beta-status-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><div class="beta-status-name">test 2</div><span class="status-pill status-pending">Pending</span></div><div style="font-size:11px;color:var(--text-dim);margin-top:3px;">By Anonymous · May 18, 2026 at 5:15 PM</div></div><div class="beta-status-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><div class="beta-status-name">test</div><span class="status-pill status-pending">Pending</span></div><div style="font-size:11px;color:var(--text-dim);margin-top:3px;">By Anonymous · May 18, 2026 at 5:08 PM</div></div></div>
       </div>
-      <button class="btn btn-secondary" id="beta-submit-another-btn">&#43; Submit Another</button>
+      <button class="btn btn-secondary" id="beta-submit-another-btn">+ Submit Another</button>
     </div>
   </div>
 </div>
@@ -864,7 +863,7 @@
     <div class="pw-title">Enter Password</div>
     <div class="pw-sub">This area is restricted to page managers.</div>
     <div class="pw-wrap">
-      <input type="password" class="form-input" id="pw-input" placeholder="Password" autocomplete="off" style="padding-right:56px" />
+      <input type="password" class="form-input" id="pw-input" placeholder="Password" autocomplete="off" style="padding-right:56px">
       <button class="pw-toggle" id="pw-show-btn">Show</button>
     </div>
     <div class="pw-error" id="pw-error"></div>
@@ -884,7 +883,7 @@
         <div class="manager-eyebrow">Page Manager</div>
         <h2 class="manager-title">Manage Page</h2>
       </div>
-      <button class="close-btn" id="close-manager-btn">&#x2715;</button>
+      <button class="close-btn" id="close-manager-btn">✕</button>
     </div>
 
     <div class="manager-tabs">
@@ -904,19 +903,19 @@
       <div class="section-label" style="margin-top:26px">Add New Tool</div>
       <div class="form-group">
         <label class="form-label">Tool Name</label>
-        <input type="text" class="form-input" id="new-name" placeholder="e.g. Search Term Analyzer" />
+        <input type="text" class="form-input" id="new-name" placeholder="e.g. Search Term Analyzer">
       </div>
       <div class="form-group">
         <label class="form-label">URL</label>
-        <input type="text" class="form-input" id="new-url" placeholder="https://hunterg-vendo.github.io/your-tool/" />
+        <input type="text" class="form-input" id="new-url" placeholder="https://hunterg-vendo.github.io/your-tool/">
       </div>
       <div class="form-group">
         <label class="form-label">Description</label>
-        <textarea class="form-textarea" id="new-desc" placeholder="What does this tool do? 1&#8211;2 sentences."></textarea>
+        <textarea class="form-textarea" id="new-desc" placeholder="What does this tool do? 1–2 sentences."></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">Author</label>
-        <input type="text" class="form-input" id="new-author" placeholder="e.g. Hunter G." />
+        <input type="text" class="form-input" id="new-author" placeholder="e.g. Hunter G.">
       </div>
       <div class="form-group">
         <label class="form-label">Tags</label>
@@ -953,9 +952,8 @@
       <div id="tag-color-manager" style="margin-bottom:24px"></div>
       <div class="section-label">Add New Tag</div>
       <div class="new-cat-row" style="margin-bottom:8px">
-        <input type="text" class="form-input" id="new-cat-input" placeholder="Tag name..." />
-        <input type="color" id="new-cat-color" value="#4f9eff" title="Pick color"
-          style="width:42px;height:42px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;padding:3px;flex-shrink:0;" />
+        <input type="text" class="form-input" id="new-cat-input" placeholder="Tag name...">
+        <input type="color" id="new-cat-color" value="#4f9eff" title="Pick color" style="width:42px;height:42px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;padding:3px;flex-shrink:0;">
         <button class="btn-add-cat" id="add-cat-btn">+ Add</button>
       </div>
       <p class="form-hint">Pick a name and color, then click Add. Click any color swatch to change an existing tag's color.</p>
@@ -990,13 +988,13 @@
         </div>
 
         <div class="form-actions" style="margin-bottom:24px">
-          <button class="btn btn-primary" id="gh-push-btn">&#8599;&nbsp; Push to GitHub</button>
+          <button class="btn btn-primary" id="gh-push-btn">↗&nbsp; Push to GitHub</button>
         </div>
 
         <div style="border-top:1px solid var(--border);padding-top:20px;">
           <div class="section-label">Backup — Download File</div>
           <p class="export-note">Download a copy of index.html to your device as a backup.</p>
-          <button class="btn btn-secondary" id="export-btn">&#8595;&nbsp; Download index.html</button>
+          <button class="btn btn-secondary" id="export-btn">↓&nbsp; Download index.html</button>
         </div>
       </div>
     </div>
@@ -1023,21 +1021,21 @@
 
       <div class="form-group" style="margin-top:20px">
         <label class="form-label">GitHub Username</label>
-        <input type="text" class="form-input" id="gh-username" placeholder="e.g. hunterg-vendo" autocomplete="off" />
+        <input type="text" class="form-input" id="gh-username" placeholder="e.g. hunterg-vendo" autocomplete="off">
       </div>
       <div class="form-group">
         <label class="form-label">Repository Name</label>
-        <input type="text" class="form-input" id="gh-repo" placeholder="e.g. pltfrm-tools" autocomplete="off" />
+        <input type="text" class="form-input" id="gh-repo" placeholder="e.g. pltfrm-tools" autocomplete="off">
       </div>
       <div class="form-group">
         <label class="form-label">File Path in Repo</label>
-        <input type="text" class="form-input" id="gh-filepath" placeholder="index.html" autocomplete="off" />
+        <input type="text" class="form-input" id="gh-filepath" placeholder="index.html" autocomplete="off">
         <p class="form-hint">Usually just <code>index.html</code>. If it's in a subfolder: <code>docs/index.html</code></p>
       </div>
       <div class="form-group">
         <label class="form-label">Personal Access Token</label>
         <div style="position:relative">
-          <input type="password" class="form-input" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="padding-right:70px" />
+          <input type="password" class="form-input" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="padding-right:70px">
           <button id="gh-token-toggle" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:11px;color:var(--text-dim);cursor:pointer;font-family:var(--sans);">Show</button>
         </div>
         <p class="form-hint">Stored only in this browser's localStorage. Never transmitted except to api.github.com.</p>
@@ -1058,15 +1056,15 @@
         <div class="section-label">Change Manager Password</div>
         <div class="form-group">
           <label class="form-label">Current Password</label>
-          <input type="password" class="form-input" id="pw-current" placeholder="Current password" autocomplete="off" />
+          <input type="password" class="form-input" id="pw-current" placeholder="Current password" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">New Password</label>
-          <input type="password" class="form-input" id="pw-new" placeholder="New password" autocomplete="off" />
+          <input type="password" class="form-input" id="pw-new" placeholder="New password" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">Confirm New Password</label>
-          <input type="password" class="form-input" id="pw-confirm" placeholder="Confirm new password" autocomplete="off" />
+          <input type="password" class="form-input" id="pw-confirm" placeholder="Confirm new password" autocomplete="off">
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" id="pw-change-btn">Change Password</button>
@@ -1083,38 +1081,54 @@
 
   // ── DEFAULT PALETTE ──────────────────────────────────────────────────
   var DEFAULT_PALETTE = [
-    { name: 'Report Analyzers',   color: '#e85c2a' },
-    { name: 'Reporting',          color: '#4f9eff' },
-    { name: 'Bulk Optimizations', color: '#34d399' }
-  ];
+  {
+    "name": "Report Analyzers",
+    "color": "#e85c2a"
+  },
+  {
+    "name": "Reporting",
+    "color": "#4f9eff"
+  },
+  {
+    "name": "Bulk Optimizations",
+    "color": "#34d399"
+  }
+];
 
   // ── DEFAULT TOOLS ────────────────────────────────────────────────────
   var DEFAULT_TOOLS = [
-    {
-      id: 't1',
-      name: 'Search Term Report Analyzer',
-      url: 'https://hunterg-vendo.github.io/Search-Term-Report-Analyzer/',
-      desc: 'Upload a Sponsored Products Search Term report to surface new keyword and ASIN targets, identify wasted spend, and flag brand slippage — all in one pass.',
-      tags: ['Report Analyzers', 'Reporting'],
-      author: 'Hunter G.'
-    },
-    {
-      id: 't2',
-      name: 'Daypart Analyzer',
-      url: 'https://hunterg-vendo.github.io/Daypart-Analyzer/',
-      desc: 'Analyze your Amazon Ads performance by hour and day of week to find the best bid adjustment windows and cut spend during low-converting time slots.',
-      tags: ['Report Analyzers'],
-      author: 'Hunter G.'
-    },
-    {
-      id: 't3',
-      name: 'Monthly Callouts Generator',
-      url: 'https://rickygrossman5-wq.github.io/Monthly-Callouts-Generator/',
-      desc: 'Generate polished monthly callout summaries fast — paste in your data and get client-ready performance highlights in seconds.',
-      tags: ['Reporting'],
-      author: 'Ricky G.'
-    }
-  ];
+  {
+    "id": "t1",
+    "name": "Search Term Report Analyzer",
+    "url": "https://hunterg-vendo.github.io/Search-Term-Report-Analyzer/",
+    "desc": "Upload a Sponsored Products Search Term report to surface new keyword and ASIN targets, identify wasted spend, and flag brand slippage — all in one pass.",
+    "tags": [
+      "Report Analyzers",
+      "Reporting"
+    ],
+    "author": "Hunter G."
+  },
+  {
+    "id": "t2",
+    "name": "Daypart Analyzer",
+    "url": "https://hunterg-vendo.github.io/Daypart-Analyzer/",
+    "desc": "Analyze your Amazon Ads performance by hour and day of week to find the best bid adjustment windows and cut spend during low-converting time slots.",
+    "tags": [
+      "Report Analyzers"
+    ],
+    "author": "Hunter G."
+  },
+  {
+    "id": "t3",
+    "name": "Monthly Callouts Generator",
+    "url": "https://rickygrossman5-wq.github.io/Monthly-Callouts-Generator/",
+    "desc": "Generate polished monthly callout summaries fast — paste in your data and get client-ready performance highlights in seconds.",
+    "tags": [
+      "Reporting"
+    ],
+    "author": "Ricky G."
+  }
+];
 
   // ── STATE ────────────────────────────────────────────────────────────
   var STORE_VERSION = '3';
@@ -2218,5 +2232,6 @@
 
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
