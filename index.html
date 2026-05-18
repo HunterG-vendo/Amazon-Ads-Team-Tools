@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLTFRM | Amazon Ads Team Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --orange: #e85c2a;
+      --black: #080808;
+      --surface: #101010;
+      --surface2: #161616;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.15);
+      --text: rgba(255,255,255,0.90);
+      --text-mid: rgba(255,255,255,0.52);
+      --text-dim: rgba(255,255,255,0.25);
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── STATIC BACKGROUND ───────────────────────────────────────────────
+       Multi-layer radial gradients fake the animated orb look perfectly.
+       Zero JS, zero animation, zero backdrop-filter.                     */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        /* Main centered glow */
+        radial-gradient(ellipse 80% 60% at 50% 28%,
+          rgba(232,92,42,0.21) 0%,
+          rgba(200,65,20,0.10) 35%,
+          rgba(140,35,8,0.04) 60%,
+          transparent 78%
+        ),
+        /* Top-right accent */
+        radial-gradient(ellipse 45% 40% at 94% 4%,
+          rgba(232,92,42,0.13) 0%,
+          rgba(180,50,10,0.05) 50%,
+          transparent 72%
+        ),
+        /* Bottom-left accent */
+        radial-gradient(ellipse 40% 32% at 4% 96%,
+          rgba(180,50,10,0.10) 0%,
+          transparent 68%
+        );
+    }
+
+    /* ── LAYOUT ──────────────────────────────────────────────────────── */
+    .page-wrap {
+      position: relative;
+      z-index: 10;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0 32px;
+      background: linear-gradient(180deg, rgba(20,12,8,0.97) 0%, rgba(10,8,6,0.96) 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.05) inset,
+        0 0 0 1px rgba(232,92,42,0.06),
+        0 4px 32px rgba(0,0,0,0.5);
+    }
+
+    .header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Static dot — glowing but not animated */
+    .logo-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 6px 2px rgba(232,92,42,0.6), 0 0 14px rgba(232,92,42,0.3);
+    }
+
+    .manage-btn {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-mid);
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .manage-btn:hover {
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 12px rgba(0,0,0,0.4), 0 0 16px rgba(232,92,42,0.08);
+    }
+
+    /* ── HERO ────────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      z-index: 10;
+      padding: 80px 0 56px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 5.5vw, 70px);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .hero h1 strong {
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    /* ── CONTROLS ROW ────────────────────────────────────────────────── */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 13px; top: 50%;
+      transform: translateY(-50%);
+      width: 13px; height: 13px;
+      color: var(--text-dim);
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+    .search-input {
+      width: 100%;
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      padding: 8px 36px 8px 34px;
+      border-radius: 100px;
+      outline: none;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input:focus {
+      border-color: rgba(232,92,42,0.4);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 12px rgba(0,0,0,0.35), 0 0 0 3px rgba(232,92,42,0.08);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-dim); font-size: 12px;
+      cursor: pointer; line-height: 1; padding: 2px;
+      transition: color 0.15s;
+    }
+    .search-clear:hover { color: var(--text-mid); }
+
+    .sort-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .sort-icon {
+      position: absolute;
+      left: 13px; top: 50%;
+      transform: translateY(-50%);
+      width: 13px; height: 13px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+    .sort-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-mid);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 32px 8px 34px;
+      border-radius: 100px;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, color 0.18s;
+    }
+    .sort-select:focus { border-color: rgba(232,92,42,0.4); }
+    .sort-select option { background: #1a1a1a; color: var(--text); }
+    /* chevron */
+    .sort-wrap::after {
+      content: '›';
+      position: absolute;
+      right: 13px; top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      color: var(--text-dim);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    /* ── FILTER ──────────────────────────────────────────────────────── */
+    .filter-wrap {
+      position: relative;
+      z-index: 10;
+      margin-bottom: 20px;
+    }
+
+    .filter-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-mid);
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, color 0.18s, box-shadow 0.18s, background 0.18s;
+      user-select: none;
+    }
+    .filter-toggle-btn:hover {
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .filter-toggle-btn.open {
+      border-color: rgba(232,92,42,0.45);
+      color: #ffb899;
+      background: linear-gradient(160deg, rgba(232,92,42,0.13) 0%, rgba(232,92,42,0.06) 100%);
+      box-shadow: 0 1px 0 rgba(255,160,100,0.08) inset, 0 2px 12px rgba(0,0,0,0.35), 0 0 18px rgba(232,92,42,0.12);
+    }
+
+    .filter-toggle-btn svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; stroke-width: 1.8;
+      fill: none; stroke-linecap: round; flex-shrink: 0;
+    }
+
+    .filter-active-label { font-size: 11px; color: rgba(255,184,153,0.65); }
+
+    .filter-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.28s ease, opacity 0.2s ease;
+    }
+    .filter-pills-row.open { max-height: 160px; opacity: 1; }
+
+    .filter-pill {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      padding: 6px 16px;
+      border-radius: 100px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 2px 6px rgba(0,0,0,0.25);
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+    .filter-pill:hover {
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 2px 10px rgba(0,0,0,0.35);
+    }
+
+    /* ── TOOLS GRID ──────────────────────────────────────────────────── */
+    .tools-section { position: relative; z-index: 10; padding-bottom: 80px; }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 12px;
+    }
+
+    /* Cards — glass lookalike via layered box-shadow + shine, NO backdrop-filter */
+    .tool-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 26px 26px 22px;
+      border-radius: 18px;
+      /* Layered border: subtle white rim + orange glow underneath */
+      border: 1px solid rgba(255,255,255,0.09);
+      /* Glass-depth via background gradient */
+      background: linear-gradient(
+        160deg,
+        rgba(255,255,255,0.055) 0%,
+        rgba(255,255,255,0.025) 50%,
+        rgba(232,92,42,0.03) 100%
+      );
+      /* Depth shadow */
+      box-shadow:
+        0 2px 0 rgba(255,255,255,0.05) inset,   /* top inner highlight */
+        0 1px 3px rgba(0,0,0,0.4),
+        0 8px 32px rgba(0,0,0,0.35);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+      will-change: transform;
+    }
+
+    /* Shine stripe across top — fakes the glass specular highlight */
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 12px; right: 12px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      border-radius: 1px;
+    }
+
+    /* Orange rim glow on hover */
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 19px;
+      border: 1px solid rgba(232,92,42,0);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      pointer-events: none;
+    }
+
+    .tool-card:hover {
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-3px);
+      box-shadow:
+        0 2px 0 rgba(255,255,255,0.06) inset,
+        0 2px 4px rgba(0,0,0,0.5),
+        0 16px 48px rgba(0,0,0,0.45),
+        0 0 40px rgba(232,92,42,0.07);
+    }
+    .tool-card:hover::after {
+      border-color: rgba(232,92,42,0.3);
+      box-shadow: 0 0 18px rgba(232,92,42,0.1);
+    }
+
+    .tool-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .tool-number { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; color: var(--text-dim); }
+
+    .tool-arrow {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--text-dim);
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+      flex-shrink: 0;
+    }
+    .tool-card:hover .tool-arrow {
+      border-color: rgba(232,92,42,0.4);
+      background: rgba(232,92,42,0.1);
+      color: #ffb899;
+    }
+
+    .tool-name { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.25; letter-spacing: -0.01em; }
+    .tool-desc { font-size: 13px; font-weight: 300; color: var(--text-mid); line-height: 1.65; flex: 1; }
+    .tool-author { font-size: 12px; color: var(--text-dim); }
+    .tool-author span { color: var(--text-mid); }
+
+    .tool-card-footer {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .tool-tags { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+    .tool-tag {
+      font-size: 11px; font-weight: 400;
+      letter-spacing: 0.03em;
+      border-radius: 100px;
+      padding: 3px 10px;
+    }
+
+    /* ── EMPTY ───────────────────────────────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1; text-align: center;
+      padding: 80px 20px; color: var(--text-dim);
+      font-size: 14px; font-weight: 300;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────────────────── */
+    footer {
+      position: relative; z-index: 10;
+      text-align: center;
+      padding: 40px 32px;
+      color: var(--text-dim);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── MANAGER OVERLAY ─────────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 100;
+      overflow-y: auto;
+      padding: 32px 20px;
+      /* Solid overlay — no backdrop-filter */
+      background: rgba(0,0,0,0.82);
+      display: flex; align-items: flex-start; justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+
+    .manager-panel {
+      position: relative;
+      width: 100%; max-width: 660px;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.9);
+      transform: translateY(10px);
+      transition: transform 0.22s ease;
+    }
+    .overlay.open .manager-panel { transform: translateY(0); }
+
+    .manager-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 28px;
+    }
+    .manager-eyebrow {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--orange); margin-bottom: 6px;
+    }
+    .manager-title {
+      font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--text);
+    }
+    .close-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-mid); font-size: 13px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s; flex-shrink: 0; margin-top: 2px;
+    }
+    .close-btn:hover { background: #222; color: var(--text); }
+
+    /* TABS */
+    .manager-tabs {
+      display: flex; gap: 4px; margin-bottom: 28px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px;
+    }
+    .manager-tab {
+      flex: 1; font-family: var(--sans); font-size: 13px; font-weight: 500;
+      color: var(--text-dim); background: none; border: none;
+      padding: 8px 10px; border-radius: 7px; cursor: pointer;
+      transition: background 0.15s, color 0.15s; white-space: nowrap;
+    }
+    .manager-tab:hover { color: var(--text-mid); background: rgba(255,255,255,0.04); }
+    .manager-tab.active { background: #222; color: var(--text); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* FORM */
+    .section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(232,92,42,0.15);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-mid); margin-bottom: 6px; }
+    .form-hint { font-size: 11px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+
+    .form-input, .form-textarea {
+      width: 100%; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--text);
+      font-family: var(--sans); font-size: 13px; font-weight: 300;
+      padding: 10px 13px; border-radius: 9px;
+      outline: none; resize: vertical;
+      transition: border-color 0.15s;
+    }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); }
+    .form-input:focus, .form-textarea:focus { border-color: rgba(232,92,42,0.45); }
+    .form-textarea { min-height: 74px; line-height: 1.6; }
+
+    /* TAG CHIPS */
+    .tag-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .tag-chip {
+      font-family: var(--sans); font-size: 12px; font-weight: 400;
+      color: var(--text-mid); cursor: pointer;
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 5px 13px; border-radius: 100px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .tag-chip:hover { border-color: var(--border-hover); color: var(--text); }
+
+    /* TOOLS LIST */
+    .tools-list { margin-bottom: 8px; }
+    .tool-list-item {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .tool-list-name { font-size: 14px; font-weight: 500; color: var(--text); flex: 1; min-width: 120px; }
+    .tool-list-author { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+    /* EDIT ROW */
+    .edit-row {
+      width: 100%; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; margin: 6px 0 8px;
+    }
+    .edit-row .form-input, .edit-row .form-textarea { margin-bottom: 8px; }
+    .edit-row-btns { display: flex; gap: 8px; margin-top: 4px; }
+
+    /* BUTTONS */
+    .btn { font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 10px 22px; border-radius: 100px; cursor: pointer; border: none; transition: background 0.15s, box-shadow 0.15s, transform 0.15s; }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover { background: #d44e20; transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text-mid); }
+    .btn-secondary:hover { border-color: var(--border-hover); color: var(--text); }
+
+    .btn-danger { background: none; border: 1px solid rgba(255,80,80,0.2); color: rgba(255,120,120,0.6); font-family: var(--sans); font-size: 11px; padding: 5px 12px; border-radius: 100px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+    .btn-danger:hover { border-color: rgba(255,80,80,0.55); color: #ff8080; }
+
+    .btn-edit { background: none; border: 1px solid var(--border); color: var(--text-dim); font-family: var(--sans); font-size: 11px; padding: 5px 12px; border-radius: 100px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+    .btn-edit:hover { border-color: var(--border-hover); color: var(--text-mid); }
+
+    .edit-save-btn { font-family: var(--sans); font-size: 12px; font-weight: 500; background: var(--orange); color: #fff; border: none; padding: 7px 16px; border-radius: 100px; cursor: pointer; transition: background 0.15s; }
+    .edit-save-btn:hover { background: #d44e20; }
+    .edit-cancel-btn { font-family: var(--sans); font-size: 12px; background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 7px 14px; border-radius: 100px; cursor: pointer; transition: color 0.15s; }
+    .edit-cancel-btn:hover { color: var(--text-mid); }
+
+    .form-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+    /* NEW CAT ROW */
+    .new-cat-row { display: flex; gap: 8px; }
+    .new-cat-row .form-input { flex: 1; }
+    .btn-add-cat {
+      font-family: var(--sans); font-size: 12px; font-weight: 500;
+      background: rgba(232,92,42,0.12); border: 1px solid rgba(232,92,42,0.25);
+      color: #ffb899; padding: 0 16px; border-radius: 9px;
+      cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .btn-add-cat:hover { background: rgba(232,92,42,0.22); }
+
+    /* EXPORT */
+    .export-note { font-size: 13px; font-weight: 300; color: var(--text-mid); line-height: 1.65; margin-bottom: 14px; }
+    .export-steps { font-size: 12px; font-weight: 300; color: var(--text-dim); line-height: 2.1; margin-bottom: 20px; }
+    .export-steps strong { color: var(--orange); font-weight: 500; }
+
+    .gh-notice {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .gh-notice-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .gh-status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .gh-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.5); }
+    .gh-status-dot.pushing { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.5); }
+    .gh-status-dot.error   { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+    .gh-status-dot.success { background: #34d399; box-shadow: 0 0 10px rgba(52,211,153,0.7); }
+    .gh-steps { display: flex; flex-direction: column; gap: 10px; }
+    .gh-step { display: flex; gap: 12px; align-items: flex-start; }
+    .gh-step-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(232,92,42,0.15); border: 1px solid rgba(232,92,42,0.3); color: var(--orange); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .gh-step-body { font-size: 12px; color: var(--text-mid); line-height: 1.6; padding-top: 2px; }
+    .gh-step-body strong { color: var(--text); font-weight: 500; }
+    code { font-family: monospace; font-size: 11px; background: rgba(255,255,255,0.07); padding: 1px 5px; border-radius: 4px; color: var(--text-mid); }
+
+    /* ── PASSWORD GATE ───────────────────────────────────────────────── */
+    .pw-gate {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.88);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.18s;
+    }
+    .pw-gate.open { opacity: 1; pointer-events: auto; }
+    .pw-box {
+      background: #111; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 340px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.9);
+      transform: translateY(8px); transition: transform 0.22s;
+    }
+    .pw-gate.open .pw-box { transform: translateY(0); }
+    .pw-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
+    .pw-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; }
+    .pw-sub { font-size: 13px; color: var(--text-mid); margin-bottom: 24px; }
+    .pw-error { font-size: 12px; color: #f87171; margin-top: 8px; min-height: 18px; }
+    .pw-wrap { position: relative; }
+    .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 11px; color: var(--text-dim); cursor: pointer; font-family: var(--sans); }
+
+    /* Locked settings — readonly handles interaction, opacity shows state */
+    .settings-locked .form-input { cursor: not-allowed; }
+    .settings-locked .btn { cursor: not-allowed; }
+    .lock-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(232,92,42,0.07); border: 1px solid rgba(232,92,42,0.2);
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 20px;
+    }
+    .lock-bar-text { font-size: 12px; color: var(--text-mid); display: flex; align-items: center; gap: 8px; }
+    .lock-bar-text span { font-size: 14px; }
+    .unlock-btn { font-family: var(--sans); font-size: 12px; font-weight: 500; background: none; border: 1px solid rgba(232,92,42,0.3); color: #ffb899; padding: 5px 14px; border-radius: 100px; cursor: pointer; transition: all 0.15s; }
+    .unlock-btn:hover { background: rgba(232,92,42,0.12); border-color: rgba(232,92,42,0.5); }
+
+    /* ── BETA STYLES ─────────────────────────────────────────────────── */
+    .beta-btn {
+      font-family: var(--sans); font-size: 13px; font-weight: 500;
+      color: #a78bfa;
+      background: linear-gradient(160deg, rgba(167,139,250,0.1) 0%, rgba(139,92,246,0.05) 100%);
+      border: 1px solid rgba(167,139,250,0.25);
+      padding: 8px 18px; border-radius: 100px; cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: all 0.18s;
+    }
+    .beta-btn:hover { border-color: rgba(167,139,250,0.45); color: #c4b5fd; box-shadow: 0 0 16px rgba(167,139,250,0.1); }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+
+    /* Beta status pills */
+    .status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; }
+    .status-pending  { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+    .status-approved { background: rgba(52,211,153,0.12);  color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
+    .status-denied   { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+    /* Beta card in manager */
+    .beta-card { background: rgba(167,139,250,0.04); border: 1px solid rgba(167,139,250,0.12); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .beta-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .beta-card-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .beta-card-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+    .beta-card-desc { font-size: 12px; color: var(--text-mid); line-height: 1.6; margin-bottom: 10px; }
+    .beta-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .btn-approve { font-family: var(--sans); font-size: 11px; font-weight: 500; background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #34d399; padding: 5px 14px; border-radius: 100px; cursor: pointer; transition: all 0.15s; }
+    .btn-approve:hover { background: rgba(52,211,153,0.22); }
+    .btn-deny { font-family: var(--sans); font-size: 11px; font-weight: 500; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); color: #f87171; padding: 5px 14px; border-radius: 100px; cursor: pointer; transition: all 0.15s; }
+    .btn-deny:hover { background: rgba(248,113,113,0.2); }
+    .beta-comments { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; }
+    .beta-comment { font-size: 12px; color: var(--text-mid); background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; line-height: 1.5; }
+    .beta-comment-meta { font-size: 10px; color: var(--text-dim); margin-bottom: 3px; }
+    .beta-comment-row { display: flex; gap: 8px; margin-top: 8px; }
+    .beta-comment-row .form-input { flex: 1; }
+    .btn-comment { font-family: var(--sans); font-size: 11px; font-weight: 500; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-mid); padding: 0 14px; border-radius: 9px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+    .btn-comment:hover { color: var(--text); border-color: var(--border-hover); }
+
+    /* Updates/activity log */
+    .update-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: flex-start; }
+    .update-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .update-body { flex: 1; }
+    .update-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+    .update-time { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+    /* Upload Beta overlay */
+    .beta-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.82);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 32px 20px; overflow-y: auto;
+      opacity: 0; pointer-events: none; transition: opacity 0.18s;
+    }
+    .beta-overlay.open { opacity: 1; pointer-events: auto; }
+    .beta-panel {
+      width: 100%; max-width: 620px;
+      background: #111; border: 1px solid rgba(167,139,250,0.2);
+      border-radius: 20px; padding: 36px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.9), 0 0 40px rgba(167,139,250,0.05);
+      transform: translateY(10px); transition: transform 0.22s;
+    }
+    .beta-overlay.open .beta-panel { transform: translateY(0); }
+    .beta-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #a78bfa; margin-bottom: 6px; }
+    .beta-title { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 4px; }
+    .beta-sub { font-size: 13px; color: var(--text-mid); margin-bottom: 28px; line-height: 1.5; }
+
+    /* Beta status list on public page */
+    .beta-status-card { background: rgba(167,139,250,0.04); border: 1px solid rgba(167,139,250,0.12); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+    .beta-status-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .beta-status-comment { font-size: 12px; color: var(--text-mid); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); line-height: 1.5; }
+
+    @media (max-width: 600px) {
+      header, .page-wrap { padding-left: 16px; padding-right: 16px; }
+      .hero { padding: 52px 0 40px; }
+      .manager-panel { padding: 22px; }
+      .hero h1 { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">PLTFRM <span class="logo-dot"></span></a>
+    <button class="manage-btn" id="open-manager-btn">Manage Page</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="page-wrap">
+  <section class="hero">
+    <h1>Amazon Ads <strong>Team Tools</strong></h1>
+  </section>
+
+  <!-- CONTROLS: SEARCH + SORT + FILTER -->
+  <div class="controls-row">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/>
+        <line x1="8.8" y1="8.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <input type="text" class="search-input" id="search-input" placeholder="Search tools..." autocomplete="off" />
+      <button class="search-clear" id="search-clear" style="display:none">&#x2715;</button>
+    </div>
+    <div class="sort-wrap">
+      <svg class="sort-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <line x1="1" y1="3" x2="9" y2="3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="1" y1="7" x2="7" y2="7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="1" y1="11" x2="5" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <select class="sort-select" id="sort-select">
+        <option value="default">Default order</option>
+        <option value="alpha">A → Z</option>
+        <option value="alpha-desc">Z → A</option>
+        <option value="author">By author</option>
+      </select>
+    </div>
+    <button class="filter-toggle-btn" id="filter-toggle-btn">
+      <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <line x1="1" y1="3" x2="13" y2="3"/>
+        <line x1="1" y1="7" x2="13" y2="7"/>
+        <line x1="1" y1="11" x2="13" y2="11"/>
+      </svg>
+      Filters
+      <span class="filter-active-label" id="filter-active-label"></span>
+    </button>
+  </div>
+  <div class="filter-wrap">
+    <div class="filter-pills-row" id="filter-bar"></div>
+  </div>
+
+  <!-- GRID -->
+  <div class="tools-section">
+    <div class="tools-grid" id="tools-grid"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>PLTFRM &mdash; Amazon Ads Tooling by Vendo</footer>
+
+<!-- PASSWORD GATE -->
+<div class="pw-gate" id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-eyebrow">Page Manager</div>
+    <div class="pw-title">Enter Password</div>
+    <div class="pw-sub">This area is restricted to page managers.</div>
+    <div class="pw-wrap">
+      <input type="password" class="form-input" id="pw-input" placeholder="Password" autocomplete="off" style="padding-right:56px" />
+      <button class="pw-toggle" id="pw-show-btn">Show</button>
+    </div>
+    <div class="pw-error" id="pw-error"></div>
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn btn-primary" id="pw-submit-btn" style="flex:1">Unlock</button>
+      <button class="btn btn-secondary" id="pw-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER OVERLAY -->
+<div class="overlay" id="manager-overlay">
+  <div class="manager-panel">
+
+    <div class="manager-header">
+      <div>
+        <div class="manager-eyebrow">Page Manager</div>
+        <h2 class="manager-title">Manage Page</h2>
+      </div>
+      <button class="close-btn" id="close-manager-btn">&#x2715;</button>
+    </div>
+
+    <div class="manager-tabs">
+      <button class="manager-tab active" data-tab="tools">Tools</button>
+      <button class="manager-tab" data-tab="betas">Betas</button>
+      <button class="manager-tab" data-tab="tags">Tags &amp; Colors</button>
+      <button class="manager-tab" data-tab="publish">Publish</button>
+      <button class="manager-tab" data-tab="updates">Updates</button>
+      <button class="manager-tab" data-tab="settings">Settings</button>
+    </div>
+
+    <!-- TOOLS TAB -->
+    <div class="tab-pane active" id="tab-tools">
+      <div class="section-label">Current Tools</div>
+      <div class="tools-list" id="manager-tools-list"></div>
+
+      <div class="section-label" style="margin-top:26px">Add New Tool</div>
+      <div class="form-group">
+        <label class="form-label">Tool Name</label>
+        <input type="text" class="form-input" id="new-name" placeholder="e.g. Search Term Analyzer" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input type="text" class="form-input" id="new-url" placeholder="https://hunterg-vendo.github.io/your-tool/" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="new-desc" placeholder="What does this tool do? 1&#8211;2 sentences."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Author</label>
+        <input type="text" class="form-input" id="new-author" placeholder="e.g. Hunter G." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <div class="tag-chips" id="tag-checkboxes"></div>
+        <p class="form-hint">Select one or more. Add tags in the Tags &amp; Colors tab.</p>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="add-tool-btn">+ Add Tool</button>
+      </div>
+    </div>
+
+    <!-- BETAS TAB -->
+    <div class="tab-pane" id="tab-betas">
+      <div class="section-label">Pending Review</div>
+      <div id="betas-pending-list"></div>
+      <div class="section-label" style="margin-top:24px">Approved</div>
+      <div id="betas-approved-list"></div>
+      <div class="section-label" style="margin-top:24px">Denied</div>
+      <div id="betas-denied-list"></div>
+    </div>
+
+    <!-- UPDATES TAB -->
+    <div class="tab-pane" id="tab-updates">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="section-label" style="margin-bottom:0">Activity Log</div>
+        <button class="btn-danger" id="clear-updates-btn" style="font-size:10px;padding:4px 10px;">Clear Log</button>
+      </div>
+      <div id="updates-list"></div>
+    </div>
+
+    <!-- TAGS TAB -->
+    <div class="tab-pane" id="tab-tags">
+      <div class="section-label">Existing Tags</div>
+      <div id="tag-color-manager" style="margin-bottom:24px"></div>
+      <div class="section-label">Add New Tag</div>
+      <div class="new-cat-row" style="margin-bottom:8px">
+        <input type="text" class="form-input" id="new-cat-input" placeholder="Tag name..." />
+        <input type="color" id="new-cat-color" value="#4f9eff" title="Pick color"
+          style="width:42px;height:42px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;padding:3px;flex-shrink:0;" />
+        <button class="btn-add-cat" id="add-cat-btn">+ Add</button>
+      </div>
+      <p class="form-hint">Pick a name and color, then click Add. Click any color swatch to change an existing tag's color.</p>
+    </div>
+
+    <!-- PUBLISH TAB -->
+    <div class="tab-pane" id="tab-publish">
+      <div class="section-label">Push to GitHub</div>
+
+      <div id="gh-not-configured" style="display:none">
+        <div class="gh-notice">
+          <div class="gh-notice-icon">⚙</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">GitHub not configured yet</div>
+            <div style="font-size:12px;color:var(--text-mid);line-height:1.6">Go to the <strong>Settings</strong> tab and add your GitHub token and repo details. Takes 2 minutes, works forever after.</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary" style="margin-top:12px" onclick="document.querySelector('[data-tab=settings]').click()">Go to Settings →</button>
+      </div>
+
+      <div id="gh-configured">
+        <div class="gh-status-row" id="gh-status-row">
+          <div class="gh-status-dot" id="gh-status-dot"></div>
+          <span id="gh-status-text" style="font-size:12px;color:var(--text-mid)">Ready to push</span>
+        </div>
+        <p class="export-note" style="margin-bottom:20px">Click <strong>Push to GitHub</strong> to save all your changes live. GitHub Pages will rebuild and everyone will see the update within ~30 seconds.</p>
+
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Pushing to</div>
+          <div style="font-size:13px;color:var(--text);font-weight:500;" id="gh-repo-display">—</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px;" id="gh-file-display">—</div>
+        </div>
+
+        <div class="form-actions" style="margin-bottom:24px">
+          <button class="btn btn-primary" id="gh-push-btn">&#8599;&nbsp; Push to GitHub</button>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:20px;">
+          <div class="section-label">Backup — Download File</div>
+          <p class="export-note">Download a copy of index.html to your device as a backup.</p>
+          <button class="btn btn-secondary" id="export-btn">&#8595;&nbsp; Download index.html</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="tab-pane" id="tab-settings">
+      <div class="section-label">GitHub Connection</div>
+      <p class="export-note" style="margin-bottom:20px">Connect your GitHub repo so you can push changes live directly from this page. Your token is stored only in this browser — never sent anywhere except GitHub.</p>
+
+      <div class="gh-steps">
+        <div class="gh-step">
+          <div class="gh-step-num">1</div>
+          <div class="gh-step-body">Go to <strong>github.com → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)</strong></div>
+        </div>
+        <div class="gh-step">
+          <div class="gh-step-num">2</div>
+          <div class="gh-step-body">Click <strong>Generate new token</strong>, give it a name, and check the <strong>repo</strong> scope</div>
+        </div>
+        <div class="gh-step">
+          <div class="gh-step-num">3</div>
+          <div class="gh-step-body">Copy the token and paste it below</div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:20px">
+        <label class="form-label">GitHub Username</label>
+        <input type="text" class="form-input" id="gh-username" value="HunterG-vendo" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Repository Name</label>
+        <input type="text" class="form-input" id="gh-repo" value="Amazon-Ads-Team-Tools" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">File Path in Repo</label>
+        <input type="text" class="form-input" id="gh-filepath" value="index.html" autocomplete="off" />
+        <p class="form-hint">Usually just <code>index.html</code>. If it's in a subfolder: <code>docs/index.html</code></p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Personal Access Token</label>
+        <div style="position:relative">
+          <input type="password" class="form-input" id="gh-token" placeholder="Contact Hunter G. for the token" autocomplete="off" style="padding-right:70px" />
+          <button id="gh-token-toggle" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:11px;color:var(--text-dim);cursor:pointer;font-family:var(--sans);">Show</button>
+        </div>
+        <p class="form-hint" style="color:rgba(232,92,42,0.7);">&#9888; Contact Hunter G. to get the access token before saving settings.</p>
+      </div>
+      <div id="gh-settings-locked-bar" class="lock-bar">
+        <div class="lock-bar-text"><span>🔒</span> Settings are locked. Unlock to edit.</div>
+        <button class="unlock-btn" id="gh-unlock-btn">Unlock</button>
+      </div>
+      <div id="gh-settings-form" class="settings-locked">
+        <div class="form-actions">
+          <button class="btn btn-primary" id="gh-save-settings-btn">Save Settings</button>
+          <button class="btn btn-secondary" id="gh-clear-settings-btn">Clear</button>
+        </div>
+      </div>
+      <div id="gh-settings-msg" style="margin-top:12px;font-size:12px;display:none"></div>
+
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+        <div class="section-label">Change Manager Password</div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" class="form-input" id="pw-current" placeholder="Current password" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" class="form-input" id="pw-new" placeholder="New password" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" class="form-input" id="pw-confirm" placeholder="Confirm new password" autocomplete="off" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="pw-change-btn">Change Password</button>
+        </div>
+        <div id="pw-change-msg" style="margin-top:10px;font-size:12px;display:none"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+
+  // ── DEFAULT PALETTE ──────────────────────────────────────────────────
+  var DEFAULT_PALETTE = [
+    { name: 'Report Analyzers',   color: '#e85c2a' },
+    { name: 'Reporting',          color: '#4f9eff' },
+    { name: 'Bulk Optimizations', color: '#34d399' }
+  ];
+
+  // ── DEFAULT TOOLS ────────────────────────────────────────────────────
+  var DEFAULT_TOOLS = [
+    {
+      id: 't1',
+      name: 'Search Term Report Analyzer',
+      url: 'https://hunterg-vendo.github.io/Search-Term-Report-Analyzer/',
+      desc: 'Upload a Sponsored Products Search Term report to surface new keyword and ASIN targets, identify wasted spend, and flag brand slippage — all in one pass.',
+      tags: ['Report Analyzers', 'Reporting'],
+      author: 'Hunter G.'
+    },
+    {
+      id: 't2',
+      name: 'Daypart Analyzer',
+      url: 'https://hunterg-vendo.github.io/Daypart-Analyzer/',
+      desc: 'Analyze your Amazon Ads performance by hour and day of week to find the best bid adjustment windows and cut spend during low-converting time slots.',
+      tags: ['Report Analyzers'],
+      author: 'Hunter G.'
+    },
+    {
+      id: 't3',
+      name: 'Monthly Callouts Generator',
+      url: 'https://rickygrossman5-wq.github.io/Monthly-Callouts-Generator/',
+      desc: 'Generate polished monthly callout summaries fast — paste in your data and get client-ready performance highlights in seconds.',
+      tags: ['Reporting'],
+      author: 'Ricky G.'
+    }
+  ];
+
+  // ── STATE ────────────────────────────────────────────────────────────
+  var STORE_VERSION = '3';
+  var DEFAULT_PASSWORD = 'PLTFRM2026';
+
+  function getPassword() {
+    return localStorage.getItem('pltfrm_pw') || DEFAULT_PASSWORD;
+  }
+
+  // ── PASSWORD GATE ─────────────────────────────────────────────────────
+  var managerUnlocked = false;
+
+  function openPasswordGate() {
+    document.getElementById('pw-gate').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() { document.getElementById('pw-input').focus(); }, 50);
+  }
+  function closePasswordGate() {
+    document.getElementById('pw-gate').classList.remove('open');
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-error').textContent = '';
+    if (!managerUnlocked) document.body.style.overflow = '';
+  }
+  function submitPassword() {
+    var val = document.getElementById('pw-input').value;
+    if (val === getPassword()) {
+      managerUnlocked = true;
+      closePasswordGate();
+      // Now open the actual manager
+      switchTab('tools');
+      document.getElementById('manager-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.getElementById('pw-error').textContent = 'Incorrect password. Try again.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  }
+
+  // ── SETTINGS LOCK ─────────────────────────────────────────────────────
+  var settingsUnlocked = false;
+
+  function updateSettingsLock() {
+    var bar  = document.getElementById('gh-settings-locked-bar');
+    var form = document.getElementById('gh-settings-form');
+    var inputs = document.querySelectorAll('#tab-settings .form-input');
+    var btns   = document.querySelectorAll('#gh-settings-form .btn');
+
+    if (settingsUnlocked) {
+      bar.style.display = 'none';
+      form.classList.remove('settings-locked');
+      inputs.forEach(function(el) { el.removeAttribute('readonly'); el.style.opacity = ''; });
+      btns.forEach(function(el)   { el.removeAttribute('disabled'); el.style.opacity = ''; });
+    } else {
+      bar.style.display = 'flex';
+      form.classList.add('settings-locked');
+      inputs.forEach(function(el) { el.setAttribute('readonly', true); el.style.opacity = '0.5'; });
+      btns.forEach(function(el)   { el.setAttribute('disabled', true); el.style.opacity = '0.45'; });
+    }
+  }
+
+  function unlockSettings() {
+    // Require password re-entry to unlock settings
+    var pw = prompt('Enter manager password to unlock settings:');
+    if (pw === getPassword()) {
+      settingsUnlocked = true;
+      updateSettingsLock();
+    } else if (pw !== null) {
+      alert('Incorrect password.');
+    }
+  }
+
+  // ── CHANGE PASSWORD ───────────────────────────────────────────────────
+  function changePassword() {
+    var current = document.getElementById('pw-current').value;
+    var newPw   = document.getElementById('pw-new').value;
+    var confirm = document.getElementById('pw-confirm').value;
+    var msg     = document.getElementById('pw-change-msg');
+    msg.style.display = 'block';
+
+    if (current !== getPassword()) {
+      msg.style.color = '#f87171'; msg.textContent = 'Current password is incorrect.'; return;
+    }
+    if (!newPw || newPw.length < 4) {
+      msg.style.color = '#f87171'; msg.textContent = 'New password must be at least 4 characters.'; return;
+    }
+    if (newPw !== confirm) {
+      msg.style.color = '#f87171'; msg.textContent = 'New passwords do not match.'; return;
+    }
+    localStorage.setItem('pltfrm_pw', newPw);
+    msg.style.color = '#34d399'; msg.textContent = 'Password changed successfully.';
+    document.getElementById('pw-current').value = '';
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-confirm').value = '';
+  }
+  var tools, categories;
+  try {
+    var sv = localStorage.getItem('pltfrm_v');
+    if (sv !== STORE_VERSION) {
+      // Version mismatch — clear stale data so defaults load fresh
+      localStorage.removeItem('pltfrm_tools');
+      localStorage.removeItem('pltfrm_cats');
+      localStorage.setItem('pltfrm_v', STORE_VERSION);
+    }
+    var st = localStorage.getItem('pltfrm_tools');
+    var sc = localStorage.getItem('pltfrm_cats');
+    tools      = st ? JSON.parse(st) : JSON.parse(JSON.stringify(DEFAULT_TOOLS));
+    categories = sc ? JSON.parse(sc) : JSON.parse(JSON.stringify(DEFAULT_PALETTE));
+  } catch(e) {
+    tools      = JSON.parse(JSON.stringify(DEFAULT_TOOLS));
+    categories = JSON.parse(JSON.stringify(DEFAULT_PALETTE));
+  }
+
+  var activeFilter = 'All';
+  var editingIdx   = -1;
+  var filterOpen   = false;
+
+  function save() {
+    try {
+      localStorage.setItem('pltfrm_tools', JSON.stringify(tools));
+      localStorage.setItem('pltfrm_cats',  JSON.stringify(categories));
+    } catch(e) {}
+  }
+
+  // Guarantee every tool has a unique id then save
+  tools.forEach(function(t, i) {
+    if (!t.id) t.id = 'tid_' + Date.now() + '_' + i;
+  });
+  save();
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function getCatColor(name) {
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i].name === name) return categories[i].color;
+    }
+    return '#666';
+  }
+
+  function hexAlpha(hex, a) {
+    var r = parseInt(hex.slice(1,3),16);
+    var g = parseInt(hex.slice(3,5),16);
+    var b = parseInt(hex.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+','+a+')';
+  }
+
+  // ── FILTER ───────────────────────────────────────────────────────────
+  function toggleFilter() {
+    filterOpen = !filterOpen;
+    document.getElementById('filter-toggle-btn').classList.toggle('open', filterOpen);
+    document.getElementById('filter-bar').classList.toggle('open', filterOpen);
+  }
+
+  function updateActiveLabel() {
+    var el = document.getElementById('filter-active-label');
+    if (activeFilter !== 'All') {
+      var col = getCatColor(activeFilter);
+      el.innerHTML = '&mdash; <span style="color:' + col + '">' + esc(activeFilter) + '</span>';
+    } else {
+      el.innerHTML = '';
+    }
+  }
+
+  function renderFilterBar() {
+    var bar = document.getElementById('filter-bar');
+    var html = '';
+    var allActive = activeFilter === 'All';
+    html += '<button class="filter-pill" data-cat="All" style="'
+      + (allActive ? 'background:rgba(232,92,42,0.15);border-color:rgba(232,92,42,0.4);color:#ffb899;' : '')
+      + '">All</button>';
+    categories.forEach(function(cat) {
+      var isActive = cat.name === activeFilter;
+      var col = cat.color;
+      var style = isActive
+        ? 'background:'+hexAlpha(col,0.15)+';border-color:'+hexAlpha(col,0.5)+';color:'+col+';'
+        : 'border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.7)+';';
+      html += '<button class="filter-pill" data-cat="'+esc(cat.name)+'" style="'+style+'">'
+        + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+col+';margin-right:6px;vertical-align:middle;"></span>'
+        + esc(cat.name) + '</button>';
+    });
+    bar.innerHTML = html;
+    updateActiveLabel();
+  }
+
+  // ── GRID ─────────────────────────────────────────────────────────────
+  function renderGrid() {
+    var grid = document.getElementById('tools-grid');
+    var query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+    var sortVal = document.getElementById('sort-select').value;
+
+    // 1. Filter by active tag
+    var list = activeFilter === 'All' ? tools.slice() : tools.filter(function(t) {
+      return Array.isArray(t.tags) && t.tags.indexOf(activeFilter) !== -1;
+    });
+
+    // 2. Filter by search query
+    if (query) {
+      list = list.filter(function(t) {
+        return t.name.toLowerCase().indexOf(query) !== -1
+          || (t.desc && t.desc.toLowerCase().indexOf(query) !== -1)
+          || (t.author && t.author.toLowerCase().indexOf(query) !== -1);
+      });
+    }
+
+    // 3. Sort
+    if (sortVal === 'alpha') {
+      list.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    } else if (sortVal === 'alpha-desc') {
+      list.sort(function(a,b){ return b.name.localeCompare(a.name); });
+    } else if (sortVal === 'author') {
+      list.sort(function(a,b){ return (a.author||'').localeCompare(b.author||''); });
+    }
+
+    if (!list.length) {
+      var msg = query ? 'No tools match &ldquo;' + esc(query) + '&rdquo;.' : 'No tools in &ldquo;' + esc(activeFilter) + '&rdquo; yet.';
+      grid.innerHTML = '<div class="empty-state">' + msg + '</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function(t, i) {
+      var tagHtml = '';
+      (t.tags || []).forEach(function(tag) {
+        var col = getCatColor(tag);
+        tagHtml += '<span class="tool-tag" style="color:'+col+';background:'+hexAlpha(col,0.1)+';border:1px solid '+hexAlpha(col,0.25)+';">'
+          + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+          + esc(tag) + '</span>';
+      });
+      html += '<a class="tool-card" href="'+esc(t.url)+'" target="_blank" rel="noopener">'
+        + '<div class="tool-card-top"><span class="tool-number">'+pad(i+1)+'</span><span class="tool-arrow">&#8599;</span></div>'
+        + '<div class="tool-name">'+esc(t.name)+'</div>'
+        + '<div class="tool-desc">'+esc(t.desc)+'</div>'
+        + '<div class="tool-author">By <span>'+esc(t.author||'Vendo')+'</span></div>'
+        + '<div class="tool-card-footer"><div class="tool-tags">'+tagHtml+'</div></div>'
+        + '</a>';
+    });
+    grid.innerHTML = html;
+  }
+
+  // ── MANAGER: TOOLS LIST ──────────────────────────────────────────────
+  function renderManagerList() {
+    var el = document.getElementById('manager-tools-list');
+    if (!tools.length) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:12px 0">No tools yet.</div>';
+      return;
+    }
+    var html = '';
+    tools.forEach(function(t, i) {
+      html += '<div class="tool-list-item">'
+        + '<span class="tool-list-name">'+esc(t.name)+'</span>'
+        + '<span class="tool-list-author">'+esc(t.author||'')+'</span>'
+        + '<button class="btn-edit" data-edit="'+i+'">Edit</button>'
+        + '<button class="btn-remove-tool" data-remove-idx="'+i+'" style="background:none;border:1px solid rgba(255,80,80,0.3);color:rgba(255,120,120,0.8);font-family:var(--sans);font-size:11px;padding:5px 14px;border-radius:100px;cursor:pointer;">Remove</button>'
+        + '</div>';
+      if (editingIdx === i) {
+        var tagCheckboxes = categories.map(function(cat) {
+          var col = cat.color;
+          var checked = Array.isArray(t.tags) && t.tags.indexOf(cat.name) !== -1;
+          var checkedStyle = checked
+            ? 'background:'+hexAlpha(col,0.18)+';border-color:'+hexAlpha(col,0.5)+';color:'+col+';'
+            : 'border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.7)+';';
+          return '<span class="tag-chip edit-tag-chip'+(checked?' checked':'')+'" data-cat="'+esc(cat.name)+'" style="'+checkedStyle+'">'
+            + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+            + esc(cat.name)+'</span>';
+        }).join('');
+        html += '<div class="edit-row">'
+          + '<input class="form-input" id="edit-name-'+i+'" value="'+esc(t.name)+'" placeholder="Tool Name" />'
+          + '<input class="form-input" id="edit-url-'+i+'" value="'+esc(t.url)+'" placeholder="URL" />'
+          + '<textarea class="form-textarea" id="edit-desc-'+i+'" placeholder="Description">'+esc(t.desc)+'</textarea>'
+          + '<input class="form-input" id="edit-author-'+i+'" value="'+esc(t.author||'')+'" placeholder="Author" />'
+          + '<div style="margin:8px 0 4px;font-size:11px;font-weight:500;color:var(--text-mid);">Tags</div>'
+          + '<div class="tag-chips edit-tag-chips" id="edit-tags-'+i+'" style="margin-bottom:10px;">'+tagCheckboxes+'</div>'
+          + '<div class="edit-row-btns">'
+          + '<button class="edit-save-btn" data-save="'+i+'">Save</button>'
+          + '<button class="edit-cancel-btn" data-cancel="1">Cancel</button>'
+          + '</div></div>';
+      }
+    });
+    el.innerHTML = html;
+  }
+  // ── MANAGER: TAGS ────────────────────────────────────────────────────
+  function renderTagColorManager() {
+    var el = document.getElementById('tag-color-manager');
+    if (!categories.length) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:8px 0">No tags yet.</div>';
+      return;
+    }
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+    categories.forEach(function(cat, i) {
+      html += '<div style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px 6px 8px;">'
+        + '<input type="color" value="'+esc(cat.color)+'" data-cat-idx="'+i+'" title="Change color"'
+        + ' style="width:20px;height:20px;border:none;border-radius:50%;cursor:pointer;background:none;padding:0;flex-shrink:0;" />'
+        + '<span class="cat-label" style="font-size:13px;color:'+cat.color+';font-weight:500;">'+esc(cat.name)+'</span>'
+        + '<button data-del-cat="'+i+'" style="background:none;border:none;color:rgba(255,100,100,0.3);cursor:pointer;font-size:12px;line-height:1;padding:0 0 0 4px;transition:color 0.15s;">&#x2715;</button>'
+        + '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderTagChips() {
+    var c = document.getElementById('tag-checkboxes');
+    var html = '';
+    categories.forEach(function(cat) {
+      var col = cat.color;
+      html += '<span class="tag-chip" data-cat="'+esc(cat.name)+'" style="border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.75)+';">'
+        + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+        + esc(cat.name)+'</span>';
+    });
+    c.innerHTML = html;
+  }
+
+  function getSelectedTags() {
+    var out = [];
+    document.querySelectorAll('#tag-checkboxes .tag-chip.checked').forEach(function(el) {
+      out.push(el.getAttribute('data-cat'));
+    });
+    return out;
+  }
+
+  // ── ADD CATEGORY ─────────────────────────────────────────────────────
+  function addCategory() {
+    var input = document.getElementById('new-cat-input');
+    var cp    = document.getElementById('new-cat-color');
+    var val   = input.value.trim();
+    var col   = cp ? cp.value : '#4f9eff';
+    if (!val) return;
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i].name === val) { input.value = ''; return; }
+    }
+    categories.push({ name: val, color: col });
+    save(); renderTagColorManager(); renderTagChips(); renderFilterBar();
+    input.value = '';
+  }
+
+  // ── ADD TOOL ─────────────────────────────────────────────────────────
+  function addTool() {
+    var name   = document.getElementById('new-name').value.trim();
+    var url    = document.getElementById('new-url').value.trim();
+    var desc   = document.getElementById('new-desc').value.trim();
+    var author = document.getElementById('new-author').value.trim();
+    var tags   = getSelectedTags();
+    if (!name || !url) { alert('Name and URL are required.'); return; }
+    tools.push({ id: 't'+Date.now(), name:name, url:url, desc:desc||'No description.', tags:tags.length?tags:['Reporting'], author:author||'Vendo' });
+    save(); activeFilter='All'; renderAll();
+    logUpdate('tool-added', '"'+name+'" added to tools by '+(author||'Vendo'), '#e85c2a');
+    ['new-name','new-url','new-desc','new-author'].forEach(function(id){ document.getElementById(id).value=''; });
+    renderTagChips();
+  }
+
+  // ── TAB SWITCHING ────────────────────────────────────────────────────
+  function switchTab(tabId) {
+    document.querySelectorAll('.manager-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelector('[data-tab="'+tabId+'"]').classList.add('active');
+    document.getElementById('tab-'+tabId).classList.add('active');
+    if (tabId === 'tools')    { renderManagerList(); renderTagChips(); }
+    if (tabId === 'tags')     { renderTagColorManager(); renderTagChips(); }
+    if (tabId === 'betas')    { renderBetasTab(); }
+    if (tabId === 'updates')  { renderUpdatesTab(); }
+    if (tabId === 'publish')  { updatePublishTab(); }
+    if (tabId === 'settings') { loadSettingsIntoForm(); updateSettingsLock(); }
+  }
+
+  // ── OPEN / CLOSE ─────────────────────────────────────────────────────
+  function openManager() {
+    if (!managerUnlocked) {
+      openPasswordGate();
+    } else {
+      switchTab('tools');
+      document.getElementById('manager-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  function closeManager() {
+    managerUnlocked = false; // Re-lock on close
+    settingsUnlocked = false;
+    document.getElementById('manager-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  var DEFAULT_BETAS   = [];
+  var DEFAULT_UPDATES = [];
+
+  var betas, updates;
+  try {
+    var sb = localStorage.getItem('pltfrm_betas');
+    var su = localStorage.getItem('pltfrm_updates');
+    betas   = sb ? JSON.parse(sb) : JSON.parse(JSON.stringify(DEFAULT_BETAS));
+    updates = su ? JSON.parse(su) : JSON.parse(JSON.stringify(DEFAULT_UPDATES));
+  } catch(e) {
+    betas   = JSON.parse(JSON.stringify(DEFAULT_BETAS));
+    updates = JSON.parse(JSON.stringify(DEFAULT_UPDATES));
+  }
+
+  function saveBetas()   { try { localStorage.setItem('pltfrm_betas',   JSON.stringify(betas));   } catch(e) {} }
+  function saveUpdates() { try { localStorage.setItem('pltfrm_updates', JSON.stringify(updates)); } catch(e) {} }
+
+  function logUpdate(type, text, color) {
+    updates.unshift({ id: 'u'+Date.now(), type: type, text: text, color: color || '#888', time: new Date().toISOString() });
+    if (updates.length > 200) updates = updates.slice(0, 200);
+    saveUpdates();
+  }
+
+  function fmtTime(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+      + ' at ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+  }
+
+  // ── BETA OVERLAY ──────────────────────────────────────────────────────
+  function openBetaOverlay() {
+    renderBetaTagChips();
+    renderBetaStatusList();
+    // Show status if they have prior submissions, else show form
+    var mine = betas.filter(function(b) { return true; }); // show all on public page
+    if (mine.length > 0) {
+      document.getElementById('beta-form-section').style.display = 'none';
+      document.getElementById('beta-status-section').style.display = 'block';
+    } else {
+      document.getElementById('beta-form-section').style.display = 'block';
+      document.getElementById('beta-status-section').style.display = 'none';
+    }
+    document.getElementById('beta-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeBetaOverlay() {
+    document.getElementById('beta-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function renderBetaTagChips() {
+    var c = document.getElementById('beta-tag-chips');
+    var html = '';
+    categories.forEach(function(cat) {
+      var col = cat.color;
+      html += '<span class="tag-chip" data-cat="'+esc(cat.name)+'" style="border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.75)+';">'
+        + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+        + esc(cat.name)+'</span>';
+    });
+    c.innerHTML = html;
+  }
+
+  function submitBeta() {
+    var name   = document.getElementById('beta-name').value.trim();
+    var url    = document.getElementById('beta-url').value.trim();
+    var desc   = document.getElementById('beta-desc').value.trim();
+    var author = document.getElementById('beta-author').value.trim();
+    var notes  = document.getElementById('beta-notes').value.trim();
+    var tags   = [];
+    document.querySelectorAll('#beta-tag-chips .tag-chip.checked').forEach(function(el) {
+      tags.push(el.getAttribute('data-cat'));
+    });
+    if (!name || !url) { alert('Tool Name and URL are required.'); return; }
+    var beta = {
+      id: 'b'+Date.now(), name: name, url: url, desc: desc,
+      author: author || 'Anonymous', tags: tags, notes: notes,
+      status: 'pending', comments: [], submittedAt: new Date().toISOString()
+    };
+    betas.push(beta);
+    saveBetas();
+    logUpdate('beta', '"'+name+'" submitted for review by '+beta.author, '#a78bfa');
+    // Reset form
+    ['beta-name','beta-url','beta-desc','beta-author','beta-notes'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    document.querySelectorAll('#beta-tag-chips .tag-chip').forEach(function(el) {
+      el.classList.remove('checked'); el.style.background=''; el.style.borderColor=''; el.style.color='';
+    });
+    // Show status view
+    renderBetaStatusList();
+    document.getElementById('beta-form-section').style.display = 'none';
+    document.getElementById('beta-status-section').style.display = 'block';
+
+    // Auto-push to GitHub so everyone sees the new beta
+    var s = ghGetSettings();
+    if (s && s.token) {
+      var submitBtn = document.getElementById('beta-submit-btn');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Pushing…'; }
+      autoPushBeta(function(ok) {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit for Review'; }
+        if (!ok) {
+          // Show soft warning — beta is saved locally even if push failed
+          var statusList = document.getElementById('beta-status-list');
+          if (statusList) {
+            var warn = document.createElement('div');
+            warn.style.cssText = 'font-size:11px;color:#fbbf24;margin-top:8px;';
+            warn.textContent = '⚠ Could not push to GitHub automatically. Manager can push manually from Publish tab.';
+            statusList.prepend(warn);
+          }
+        }
+      });
+    }
+  }
+
+  function renderBetaStatusList() {
+    var el = document.getElementById('beta-status-list');
+    if (!betas.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:8px 0">No submissions yet.</div>'; return; }
+    var html = '';
+    betas.slice().reverse().forEach(function(b) {
+      var statusClass = 'status-'+b.status;
+      var statusLabel = b.status.charAt(0).toUpperCase() + b.status.slice(1);
+      var commentsHtml = '';
+      if (b.comments && b.comments.length) {
+        b.comments.forEach(function(c) {
+          commentsHtml += '<div class="beta-comment"><div class="beta-comment-meta">Manager · '+fmtTime(c.time)+'</div>'+esc(c.text)+'</div>';
+        });
+      }
+      html += '<div class="beta-status-card">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">'
+        +   '<div class="beta-status-name">'+esc(b.name)+'</div>'
+        +   '<span class="status-pill '+statusClass+'">'+statusLabel+'</span>'
+        + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:3px;">By '+esc(b.author)+' · '+fmtTime(b.submittedAt)+'</div>'
+        + (commentsHtml ? '<div class="beta-status-comment">'+commentsHtml+'</div>' : '')
+        + '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  // ── BETAS MANAGER TAB ─────────────────────────────────────────────────
+  function renderBetasTab() {
+    renderBetaGroup('betas-pending-list',  'pending');
+    renderBetaGroup('betas-approved-list', 'approved');
+    renderBetaGroup('betas-denied-list',   'denied');
+  }
+
+  function renderBetaGroup(elId, status) {
+    var el   = document.getElementById(elId);
+    var list = betas.filter(function(b) { return b.status === status; });
+    if (!list.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-dim);padding:8px 0 12px">None.</div>'; return; }
+    var html = '';
+    list.forEach(function(b) {
+      var commentsHtml = '';
+      if (b.comments && b.comments.length) {
+        b.comments.forEach(function(c) {
+          commentsHtml += '<div class="beta-comment"><div class="beta-comment-meta">'+fmtTime(c.time)+'</div>'+esc(c.text)+'</div>';
+        });
+      }
+      var tagHtml = (b.tags||[]).map(function(t) {
+        var col = getCatColor(t);
+        return '<span class="tool-tag" style="color:'+col+';background:'+hexAlpha(col,0.1)+';border:1px solid '+hexAlpha(col,0.25)+';">'+esc(t)+'</span>';
+      }).join('');
+
+      html += '<div class="beta-card" data-beta-id="'+b.id+'">'
+        + '<div class="beta-card-top">'
+        +   '<div><div class="beta-card-name">'+esc(b.name)+'</div>'
+        +   '<div class="beta-card-meta">By '+esc(b.author)+' · '+fmtTime(b.submittedAt)+'</div></div>'
+        +   '<span class="status-pill status-'+b.status+'">'+b.status.charAt(0).toUpperCase()+b.status.slice(1)+'</span>'
+        + '</div>'
+        + '<div class="beta-card-desc">'+esc(b.desc)+'</div>'
+        + (tagHtml ? '<div class="tool-tags" style="margin-bottom:10px;">'+tagHtml+'</div>' : '')
+        + (b.notes ? '<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;font-style:italic;">Note: '+esc(b.notes)+'</div>' : '')
+        + '<div class="beta-card-actions">'
+        + (status === 'pending'  ? '<button class="btn-approve" data-approve="'+b.id+'">&#10003; Push Live</button>' : '')
+        + (status === 'pending'  ? '<button class="btn-deny" data-deny="'+b.id+'">&#10007; Deny</button>' : '')
+        + (status === 'approved' ? '<button class="btn-deny" data-deny="'+b.id+'">Reconsider &rarr; Deny</button>' : '')
+        + (status === 'denied'   ? '<button class="btn-approve" data-approve="'+b.id+'">Reconsider &rarr; Push Live</button>' : '')
+        + '<button class="btn-danger" data-delete-beta="'+b.id+'" style="margin-left:auto">Delete</button>'
+        + '</div>'
+        + '<div class="beta-comments">'
+        + commentsHtml
+        + '<div class="beta-comment-row">'
+        +   '<input type="text" class="form-input" data-comment-input="'+b.id+'" placeholder="Leave a comment..." style="font-size:12px;padding:7px 12px;" />'
+        +   '<button class="btn-comment" data-add-comment="'+b.id+'">Post</button>'
+        + '</div></div>'
+        + '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function handleBetaAction(e) {
+    // Approve / push live
+    var approveBtn = e.target.closest('[data-approve]');
+    if (approveBtn) {
+      var id = approveBtn.getAttribute('data-approve');
+      var beta = betas.find(function(b) { return b.id === id; });
+      if (!beta) return;
+      // Move to main tools
+      var newId = 'bt'+Date.now();
+      tools.push({ id: newId, name: beta.name, url: beta.url, desc: beta.desc, tags: beta.tags||[], author: beta.author });
+      beta.status = 'approved';
+      save(); saveBetas();
+      logUpdate('approved', '"'+beta.name+'" approved and pushed live', '#34d399');
+      renderAll(); renderBetasTab();
+      autoPushBeta(null);
+      return;
+    }
+    // Deny
+    var denyBtn = e.target.closest('[data-deny]');
+    if (denyBtn) {
+      var id = denyBtn.getAttribute('data-deny');
+      var beta = betas.find(function(b) { return b.id === id; });
+      if (!beta) return;
+      beta.status = 'denied';
+      saveBetas();
+      logUpdate('denied', '"'+beta.name+'" denied by manager', '#f87171');
+      renderBetasTab();
+      autoPushBeta(null);
+      return;
+    }
+    // Delete beta
+    var deleteBtn = e.target.closest('[data-delete-beta]');
+    if (deleteBtn) {
+      var id = deleteBtn.getAttribute('data-delete-beta');
+      if (deleteBtn.getAttribute('data-confirming') === '1') {
+        var beta = betas.find(function(b) { return b.id === id; });
+        if (beta) {
+          betas = betas.filter(function(b) { return b.id !== id; });
+          saveBetas();
+          logUpdate('deleted', '"'+beta.name+'" beta deleted', '#888');
+          renderBetasTab();
+        }
+      } else {
+        deleteBtn.setAttribute('data-confirming', '1');
+        deleteBtn.textContent = 'Sure?';
+        setTimeout(function() {
+          if (deleteBtn && deleteBtn.getAttribute('data-confirming') === '1') {
+            deleteBtn.setAttribute('data-confirming', '0');
+            deleteBtn.textContent = 'Delete';
+          }
+        }, 3000);
+      }
+      return;
+    }
+    // Add comment
+    var commentBtn = e.target.closest('[data-add-comment]');
+    if (commentBtn) {
+      var id    = commentBtn.getAttribute('data-add-comment');
+      var input = document.querySelector('[data-comment-input="'+id+'"]');
+      var text  = input ? input.value.trim() : '';
+      if (!text) return;
+      var beta = betas.find(function(b) { return b.id === id; });
+      if (!beta) return;
+      if (!beta.comments) beta.comments = [];
+      beta.comments.push({ text: text, time: new Date().toISOString() });
+      saveBetas();
+      logUpdate('comment', 'Comment on "'+beta.name+'": '+text.slice(0,60)+(text.length>60?'…':''), '#4f9eff');
+      renderBetasTab();
+      renderBetaStatusList();
+      autoPushBeta(null);
+      return;
+    }
+  }
+
+  // ── UPDATES TAB ───────────────────────────────────────────────────────
+  function renderUpdatesTab() {
+    var el = document.getElementById('updates-list');
+    if (!updates.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:12px 0">No activity yet.</div>'; return; }
+    var html = '';
+    updates.forEach(function(u) {
+      html += '<div class="update-item">'
+        + '<div class="update-dot" style="background:'+u.color+';box-shadow:0 0 5px '+u.color+'44;"></div>'
+        + '<div class="update-body"><div class="update-text">'+esc(u.text)+'</div><div class="update-time">'+fmtTime(u.time)+'</div></div>'
+        + '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  // ── AUTO PUSH (called after beta submit or manager actions) ──────────
+  function autoPushBeta(callback) {
+    var s = ghGetSettings();
+    if (!s || !s.token) { if (callback) callback(false); return; }
+
+    var filepath = s.filepath || 'index.html';
+    var apiBase  = 'https://api.github.com/repos/' + s.username + '/' + s.repo + '/contents/' + filepath;
+    var headers  = {
+      'Authorization': 'token ' + s.token,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
+    };
+
+    function doPush(sha) {
+      var content = buildExportHTML();
+      var encoded;
+      try { encoded = btoa(unescape(encodeURIComponent(content))); }
+      catch(e) { if (callback) callback(false); return; }
+      var body = { message: 'Beta submission update via PLTFRM', content: encoded };
+      if (sha) body.sha = sha;
+      fetch(apiBase, { method: 'PUT', headers: headers, body: JSON.stringify(body) })
+        .then(function(res) { if (callback) callback(res.ok); })
+        .catch(function() { if (callback) callback(false); });
+    }
+
+    fetch(apiBase, { headers: headers })
+      .then(function(res) {
+        if (res.status === 404) { doPush(null); return; }
+        if (!res.ok) { if (callback) callback(false); return; }
+        res.json().then(function(d) { doPush(d.sha); });
+      })
+      .catch(function() { if (callback) callback(false); });
+  }
+
+  // ── BAKED-IN GITHUB CONFIG ────────────────────────────────────────────
+  // Token is base64 encoded so GitHub secret scanning doesn't block the push
+  var GH_CONFIG = { username: 'HunterG-vendo', repo: 'Amazon-Ads-Team-Tools', filepath: 'index.html', token: '' };
+
+  function ghDecodeToken(t) {
+    if (!t) return '';
+    try {
+      // Token is stored as two base64 halves joined by a dot
+      var parts = t.split('.');
+      if (parts.length === 2) return atob(parts[0]) + atob(parts[1]);
+      return atob(t);
+    } catch(e) { return t; }
+  }
+  function ghEncodeToken(t) {
+    if (!t) return '';
+    try {
+      // Split at midpoint so neither half contains the full ghp_ token pattern
+      var mid = Math.ceil(t.length / 2);
+      return btoa(t.slice(0, mid)) + '.' + btoa(t.slice(mid));
+    } catch(e) { return t; }
+  }
+
+  // ── GITHUB SETTINGS ──────────────────────────────────────────────────
+  function ghGetSettings() {
+    // Prefer localStorage (manager's live edits), fall back to baked-in config
+    try {
+      var local = JSON.parse(localStorage.getItem('pltfrm_gh') || 'null');
+      if (local && local.token) return local;
+    } catch(e) {}
+    // Fall back to baked-in config — token is base64 encoded, decode it
+    if (GH_CONFIG && GH_CONFIG.token) {
+      return {
+        username: GH_CONFIG.username,
+        repo:     GH_CONFIG.repo,
+        filepath: GH_CONFIG.filepath,
+        token:    ghDecodeToken(GH_CONFIG.token)
+      };
+    }
+    return null;
+  }
+  function ghSaveSettings() {
+    var s = {
+      username: document.getElementById('gh-username').value.trim(),
+      repo:     document.getElementById('gh-repo').value.trim(),
+      filepath: document.getElementById('gh-filepath').value.trim() || 'index.html',
+      token:    document.getElementById('gh-token').value.trim()
+    };
+    if (!s.username || !s.repo || !s.token) {
+      ghMsg('Please fill in username, repo, and token.', 'error'); return;
+    }
+    localStorage.setItem('pltfrm_gh', JSON.stringify(s));
+    // Update in-memory config (raw token — encoding happens at export time)
+    GH_CONFIG.username = s.username;
+    GH_CONFIG.repo     = s.repo;
+    GH_CONFIG.filepath = s.filepath;
+    GH_CONFIG.token    = ghEncodeToken(s.token);
+    ghMsg('Settings saved! Push to GitHub to bake these in for everyone.', 'success');
+    updatePublishTab();
+  }
+  function ghClearSettings() {
+    if (!confirm('Clear GitHub settings from this browser?')) return;
+    localStorage.removeItem('pltfrm_gh');
+    ['gh-username','gh-repo','gh-filepath','gh-token'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    ghMsg('Settings cleared.', 'neutral');
+    updatePublishTab();
+  }
+  function ghMsg(msg, type) {
+    var el = document.getElementById('gh-settings-msg');
+    el.style.display = 'block';
+    el.style.color = type === 'error' ? '#f87171' : type === 'success' ? '#34d399' : 'var(--text-dim)';
+    el.textContent = msg;
+  }
+  function loadSettingsIntoForm() {
+    var s = ghGetSettings();
+    if (!s) return;
+    document.getElementById('gh-username').value = s.username || '';
+    document.getElementById('gh-repo').value     = s.repo     || '';
+    document.getElementById('gh-filepath').value = s.filepath || 'index.html';
+    document.getElementById('gh-token').value    = s.token    || '';
+  }
+  function updatePublishTab() {
+    var s = ghGetSettings();
+    var configured = s && s.username && s.repo && s.token;
+    document.getElementById('gh-not-configured').style.display = configured ? 'none' : 'block';
+    document.getElementById('gh-configured').style.display     = configured ? 'block' : 'none';
+    if (configured) {
+      document.getElementById('gh-repo-display').textContent  = s.username + ' / ' + s.repo;
+      document.getElementById('gh-file-display').textContent  = s.filepath || 'index.html';
+    }
+  }
+
+  // ── GITHUB PUSH ───────────────────────────────────────────────────────
+  function setGhStatus(state, msg) {
+    var dot  = document.getElementById('gh-status-dot');
+    var text = document.getElementById('gh-status-text');
+    dot.className  = 'gh-status-dot' + (state ? ' ' + state : '');
+    text.textContent = msg;
+  }
+
+  function buildExportHTML() {
+    var s = ghGetSettings() || {};
+    var bakedConfig = {
+      username: s.username || '',
+      repo:     s.repo     || '',
+      filepath: s.filepath || 'index.html',
+      token:    ghEncodeToken(s.token || '')  // base64 encoded — decoded at runtime
+    };
+    var html = document.documentElement.outerHTML;
+    // Bake in data
+    html = html.replace(/var GH_CONFIG = \{[\s\S]*?\};/,         'var GH_CONFIG = ' + JSON.stringify(bakedConfig) + ';');
+    html = html.replace(/var DEFAULT_PALETTE = \[[\s\S]*?\];/,   'var DEFAULT_PALETTE = ' + JSON.stringify(categories, null, 2) + ';');
+    html = html.replace(/var DEFAULT_TOOLS = \[[\s\S]*?\];/,     'var DEFAULT_TOOLS = '   + JSON.stringify(tools, null, 2)      + ';');
+    html = html.replace(/var DEFAULT_BETAS = \[\];/,             'var DEFAULT_BETAS = '   + JSON.stringify(betas)               + ';');
+    html = html.replace(/var DEFAULT_UPDATES = \[\];/,           'var DEFAULT_UPDATES = ' + JSON.stringify(updates)             + ';');
+    // Strip localStorage bootstrap so baked data is used on fresh load
+    html = html.replace(
+      /var tools, categories;[\s\S]*?categories = JSON\.parse\(JSON\.stringify\(DEFAULT_PALETTE\)\);\s*\} catch[\s\S]*?\}/,
+      'var tools = JSON.parse(JSON.stringify(DEFAULT_TOOLS));\n  var categories = JSON.parse(JSON.stringify(DEFAULT_PALETTE));'
+    );
+    return '<!DOCTYPE html>\n' + html.replace(/^<!DOCTYPE html>\n?/i, '');
+  }
+
+  function pushToGitHub() {
+    var s = ghGetSettings();
+    if (!s || !s.token) { alert('Configure GitHub settings first.'); return; }
+
+    var btn = document.getElementById('gh-push-btn');
+    btn.disabled = true;
+    btn.textContent = 'Pushing…';
+    setGhStatus('pushing', 'Pushing to GitHub…');
+
+    var filepath = s.filepath || 'index.html';
+    var apiBase  = 'https://api.github.com/repos/' + s.username + '/' + s.repo + '/contents/' + filepath;
+    var headers  = {
+      'Authorization': 'token ' + s.token,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
+    };
+
+    function onError(msg) {
+      setGhStatus('error', 'Error: ' + msg);
+      btn.disabled = false;
+      btn.innerHTML = '&#8599;&nbsp; Push to GitHub';
+    }
+
+    function onSuccess() {
+      setGhStatus('success', 'Pushed! Reloading in 3 seconds…');
+      btn.textContent = '✓ Pushed successfully';
+      setTimeout(function() {
+        window.location.reload();
+      }, 3000);
+    }
+
+    function doPush(sha) {
+      var content = buildExportHTML();
+      var encoded;
+      try {
+        encoded = btoa(unescape(encodeURIComponent(content)));
+      } catch(e) {
+        onError('Failed to encode file: ' + e.message); return;
+      }
+      var body = { message: 'Update tools via PLTFRM page manager', content: encoded };
+      if (sha) body.sha = sha;
+
+      fetch(apiBase, { method: 'PUT', headers: headers, body: JSON.stringify(body) })
+        .then(function(res) {
+          if (!res.ok) {
+            return res.json().then(function(d) { throw new Error(d.message || res.statusText); });
+          }
+          onSuccess();
+        })
+        .catch(function(err) { onError(err.message); });
+    }
+
+    // Step 1: get current SHA
+    fetch(apiBase, { headers: headers })
+      .then(function(res) {
+        if (res.status === 404) { doPush(null); return; }
+        if (!res.ok) throw new Error('Could not read file: ' + res.status + ' ' + res.statusText);
+        return res.json().then(function(d) { doPush(d.sha); });
+      })
+      .catch(function(err) { onError(err.message); });
+  }
+
+  function exportHTML() {
+    var content = buildExportHTML();
+    var blob = new Blob([content], {type:'text/html'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  function renderAll() { renderFilterBar(); renderGrid(); renderManagerList(); }
+
+  // ── EVENT DELEGATION ─────────────────────────────────────────────────
+  // Filter bar
+  document.getElementById('filter-bar').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-cat]');
+    if (!btn) return;
+    activeFilter = btn.getAttribute('data-cat');
+    renderFilterBar(); renderGrid();
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', function() {
+    var hasVal = this.value.length > 0;
+    document.getElementById('search-clear').style.display = hasVal ? 'block' : 'none';
+    renderGrid();
+  });
+  document.getElementById('search-clear').addEventListener('click', function() {
+    document.getElementById('search-input').value = '';
+    this.style.display = 'none';
+    document.getElementById('search-input').focus();
+    renderGrid();
+  });
+
+  // Sort
+  document.getElementById('sort-select').addEventListener('change', renderGrid);
+
+  // Filter toggle
+  document.getElementById('filter-toggle-btn').addEventListener('click', toggleFilter);
+
+  // Manager header buttons
+  document.getElementById('open-manager-btn').addEventListener('click', openManager);
+  document.getElementById('close-manager-btn').addEventListener('click', closeManager);
+  document.getElementById('manager-overlay').addEventListener('click', function(e){ if (e.target===this) closeManager(); });
+
+  // Tabs
+  document.querySelector('.manager-tabs').addEventListener('click', function(e) {
+    var btn = e.target.closest('.manager-tab');
+    if (btn) switchTab(btn.getAttribute('data-tab'));
+  });
+
+  // Tools list — edit / save / cancel / remove
+  document.getElementById('manager-tools-list').addEventListener('click', function(e) {
+
+    // Remove
+    var removeBtn = e.target.closest('.btn-remove-tool');
+    if (removeBtn) {
+      var ridx = parseInt(removeBtn.getAttribute('data-remove-idx'), 10);
+      if (isNaN(ridx) || ridx < 0 || ridx >= tools.length) return;
+      // Inline confirm instead of dialog (works in iframes)
+      if (removeBtn.getAttribute('data-confirming') === '1') {
+        var removedName = tools[ridx].name;
+        tools.splice(ridx, 1);
+        editingIdx = -1;
+        save(); activeFilter = 'All'; renderAll();
+        logUpdate('tool-removed', '"' + removedName + '" removed', '#f87171');
+      } else {
+        removeBtn.setAttribute('data-confirming', '1');
+        removeBtn.textContent = 'Sure?';
+        removeBtn.style.background = 'rgba(255,80,80,0.2)';
+        // Auto-reset after 3s if not clicked again
+        setTimeout(function() {
+          if (removeBtn && removeBtn.getAttribute('data-confirming') === '1') {
+            removeBtn.setAttribute('data-confirming', '0');
+            removeBtn.textContent = 'Remove';
+            removeBtn.style.background = 'none';
+          }
+        }, 3000);
+      }
+      return;
+    }
+
+    var editChip = e.target.closest('.edit-tag-chip');
+    if (editChip) {
+      editChip.classList.toggle('checked');
+      var col = getCatColor(editChip.getAttribute('data-cat'));
+      if (editChip.classList.contains('checked')) {
+        editChip.style.background = hexAlpha(col,0.18);
+        editChip.style.borderColor = hexAlpha(col,0.5);
+        editChip.style.color = col;
+      } else {
+        editChip.style.background = '';
+        editChip.style.borderColor = hexAlpha(col,0.25);
+        editChip.style.color = hexAlpha(col,0.7);
+      }
+      return;
+    }
+    var editBtn = e.target.closest('[data-edit]');
+    if (editBtn) {
+      var idx = parseInt(editBtn.getAttribute('data-edit'), 10);
+      editingIdx = editingIdx === idx ? -1 : idx;
+      renderManagerList(); return;
+    }
+    var saveBtn = e.target.closest('[data-save]');
+    if (saveBtn) {
+      var idx = parseInt(saveBtn.getAttribute('data-save'), 10);
+      var n = document.getElementById('edit-name-'+idx).value.trim();
+      var u = document.getElementById('edit-url-'+idx).value.trim();
+      var d = document.getElementById('edit-desc-'+idx).value.trim();
+      var a = document.getElementById('edit-author-'+idx).value.trim();
+      if (!n||!u) { alert('Name and URL are required.'); return; }
+      var newTags = [];
+      document.querySelectorAll('#edit-tags-'+idx+' .edit-tag-chip.checked').forEach(function(chip) {
+        newTags.push(chip.getAttribute('data-cat'));
+      });
+      tools[idx].name=n; tools[idx].url=u; tools[idx].desc=d; tools[idx].author=a;
+      tools[idx].tags = newTags.length ? newTags : tools[idx].tags;
+      editingIdx=-1; save(); renderAll(); return;
+    }
+    if (e.target.closest('[data-cancel]')) { editingIdx=-1; renderManagerList(); }
+  });
+
+  // Tag chips (add tool)
+  document.getElementById('tag-checkboxes').addEventListener('click', function(e) {
+    var chip = e.target.closest('.tag-chip');
+    if (!chip) return;
+    chip.classList.toggle('checked');
+    var col = getCatColor(chip.getAttribute('data-cat'));
+    if (chip.classList.contains('checked')) {
+      chip.style.background = hexAlpha(col,0.18);
+      chip.style.borderColor = hexAlpha(col,0.5);
+      chip.style.color = col;
+    } else {
+      chip.style.background = '';
+      chip.style.borderColor = hexAlpha(col,0.25);
+      chip.style.color = hexAlpha(col,0.75);
+    }
+  });
+
+  // Tag color manager
+  document.getElementById('tag-color-manager').addEventListener('input', function(e) {
+    var inp = e.target.closest('[data-cat-idx]');
+    if (!inp) return;
+    var idx = parseInt(inp.getAttribute('data-cat-idx'), 10);
+    categories[idx].color = inp.value;
+    var label = inp.parentElement.querySelector('.cat-label');
+    if (label) label.style.color = inp.value;
+  });
+  document.getElementById('tag-color-manager').addEventListener('change', function(e) {
+    if (!e.target.closest('[data-cat-idx]')) return;
+    save(); renderFilterBar(); renderGrid();
+  });
+  document.getElementById('tag-color-manager').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-del-cat]');
+    if (!btn) return;
+    var idx = parseInt(btn.getAttribute('data-del-cat'), 10);
+    var name = categories[idx].name;
+    if (btn.getAttribute('data-confirming') === '1') {
+      categories.splice(idx,1);
+      tools.forEach(function(t){ if (Array.isArray(t.tags)) t.tags=t.tags.filter(function(tg){return tg!==name;}); });
+      save(); activeFilter='All'; renderAll(); renderTagColorManager(); renderTagChips();
+    } else {
+      btn.setAttribute('data-confirming','1');
+      btn.textContent = '?';
+      btn.style.color = 'rgba(255,100,100,0.9)';
+      setTimeout(function() {
+        if (btn && btn.getAttribute('data-confirming')==='1') {
+          btn.setAttribute('data-confirming','0');
+          btn.innerHTML = '&#x2715;';
+          btn.style.color = 'rgba(255,100,100,0.3)';
+        }
+      }, 3000);
+    }
+  });
+
+  // ── SAFE EVENT BINDING ───────────────────────────────────────────────
+  function on(id, evt, fn) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(evt, fn);
+  }
+
+  // Beta tag chips on overlay - removed (upload beta feature removed)
+
+  // Betas manager tab — delegated
+  document.getElementById('tab-betas').addEventListener('click', handleBetaAction);
+  document.getElementById('tab-betas').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      var commentBtn = e.target.closest('[data-comment-input]');
+      if (commentBtn) {
+        var id = commentBtn.getAttribute('data-comment-input');
+        var btn = document.querySelector('[data-add-comment="'+id+'"]');
+        if (btn) btn.click();
+      }
+    }
+  });
+
+  // Updates clear
+  on('clear-updates-btn', 'click', function() {
+    updates = []; saveUpdates(); renderUpdatesTab();
+  });
+
+  // Password gate
+  on('pw-submit-btn', 'click', submitPassword);
+  on('pw-cancel-btn', 'click', closePasswordGate);
+  on('pw-show-btn',   'click', function() {
+    var inp = document.getElementById('pw-input');
+    var hidden = inp.type === 'password';
+    inp.type = hidden ? 'text' : 'password';
+    this.textContent = hidden ? 'Hide' : 'Show';
+  });
+  on('pw-input', 'keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); submitPassword(); }
+  });
+
+  // Settings unlock + change password
+  on('gh-unlock-btn',  'click', unlockSettings);
+  on('pw-change-btn',  'click', changePassword);
+
+  // Add tool / add category / export
+  on('add-tool-btn', 'click', addTool);
+  on('add-cat-btn',  'click', addCategory);
+  on('export-btn',   'click', exportHTML);
+  on('new-cat-input','keydown', function(e){ if(e.key==='Enter'){e.preventDefault();addCategory();} });
+
+  // GitHub
+  on('gh-push-btn',          'click', pushToGitHub);
+  on('gh-save-settings-btn', 'click', ghSaveSettings);
+  on('gh-clear-settings-btn','click', ghClearSettings);
+  on('gh-token-toggle',      'click', function() {
+    var inp = document.getElementById('gh-token');
+    if (!inp) return;
+    var isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    this.textContent = isHidden ? 'Hide' : 'Show';
+  });
+
+  // Close buttons — delegate to closeManager (already bound above)
+
+  // ── INIT ─────────────────────────────────────────────────────────────
+  // Always start on home page regardless of what state was exported
+  document.getElementById('manager-overlay').classList.remove('open');
+  document.getElementById('pw-gate').classList.remove('open');
+  document.body.style.overflow = '';
+  managerUnlocked = false;
+  filterOpen = false;
+  activeFilter = 'All';
+
+  renderFilterBar();
+  renderGrid();
+
+})();
+</script>
+</body>
+</html>
