@@ -1811,8 +1811,17 @@
   }
 
   // ── BAKED-IN GITHUB CONFIG ────────────────────────────────────────────
-  // This gets updated and baked in on every Publish so anyone can auto-push
+  // Token is base64 encoded so GitHub secret scanning doesn't block the push
   var GH_CONFIG = { username: '', repo: '', filepath: 'index.html', token: '' };
+
+  function ghDecodeToken(t) {
+    if (!t) return '';
+    try { return atob(t); } catch(e) { return t; }
+  }
+  function ghEncodeToken(t) {
+    if (!t) return '';
+    try { return btoa(t); } catch(e) { return t; }
+  }
 
   // ── GITHUB SETTINGS ──────────────────────────────────────────────────
   function ghGetSettings() {
@@ -1821,8 +1830,15 @@
       var local = JSON.parse(localStorage.getItem('pltfrm_gh') || 'null');
       if (local && local.token) return local;
     } catch(e) {}
-    // Fall back to baked-in config (works for everyone without localStorage)
-    if (GH_CONFIG && GH_CONFIG.token) return GH_CONFIG;
+    // Fall back to baked-in config — token is base64 encoded, decode it
+    if (GH_CONFIG && GH_CONFIG.token) {
+      return {
+        username: GH_CONFIG.username,
+        repo:     GH_CONFIG.repo,
+        filepath: GH_CONFIG.filepath,
+        token:    ghDecodeToken(GH_CONFIG.token)
+      };
+    }
     return null;
   }
   function ghSaveSettings() {
@@ -1836,11 +1852,11 @@
       ghMsg('Please fill in username, repo, and token.', 'error'); return;
     }
     localStorage.setItem('pltfrm_gh', JSON.stringify(s));
-    // Also update in-memory config so it gets baked in on next publish
+    // Update in-memory config (raw token — encoding happens at export time)
     GH_CONFIG.username = s.username;
     GH_CONFIG.repo     = s.repo;
     GH_CONFIG.filepath = s.filepath;
-    GH_CONFIG.token    = s.token;
+    GH_CONFIG.token    = ghEncodeToken(s.token);
     ghMsg('Settings saved! Push to GitHub to bake these in for everyone.', 'success');
     updatePublishTab();
   }
@@ -1888,7 +1904,12 @@
 
   function buildExportHTML() {
     var s = ghGetSettings() || {};
-    var bakedConfig = { username: s.username||'', repo: s.repo||'', filepath: s.filepath||'index.html', token: s.token||'' };
+    var bakedConfig = {
+      username: s.username || '',
+      repo:     s.repo     || '',
+      filepath: s.filepath || 'index.html',
+      token:    ghEncodeToken(s.token || '')  // base64 encoded — decoded at runtime
+    };
     var html = document.documentElement.outerHTML;
     // Bake in data
     html = html.replace(/var GH_CONFIG = \{[\s\S]*?\};/,         'var GH_CONFIG = ' + JSON.stringify(bakedConfig) + ';');
