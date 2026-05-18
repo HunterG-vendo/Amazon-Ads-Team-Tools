@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLTFRM | Amazon Ads Team Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --orange: #e85c2a;
+      --black: #080808;
+      --surface: #101010;
+      --surface2: #161616;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.15);
+      --text: rgba(255,255,255,0.90);
+      --text-mid: rgba(255,255,255,0.52);
+      --text-dim: rgba(255,255,255,0.25);
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── STATIC BACKGROUND ───────────────────────────────────────────────
+       Multi-layer radial gradients fake the animated orb look perfectly.
+       Zero JS, zero animation, zero backdrop-filter.                     */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        /* Main centered glow */
+        radial-gradient(ellipse 80% 60% at 50% 28%,
+          rgba(232,92,42,0.21) 0%,
+          rgba(200,65,20,0.10) 35%,
+          rgba(140,35,8,0.04) 60%,
+          transparent 78%
+        ),
+        /* Top-right accent */
+        radial-gradient(ellipse 45% 40% at 94% 4%,
+          rgba(232,92,42,0.13) 0%,
+          rgba(180,50,10,0.05) 50%,
+          transparent 72%
+        ),
+        /* Bottom-left accent */
+        radial-gradient(ellipse 40% 32% at 4% 96%,
+          rgba(180,50,10,0.10) 0%,
+          transparent 68%
+        );
+    }
+
+    /* ── LAYOUT ──────────────────────────────────────────────────────── */
+    .page-wrap {
+      position: relative;
+      z-index: 10;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0 32px;
+      background: linear-gradient(180deg, rgba(20,12,8,0.97) 0%, rgba(10,8,6,0.96) 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.05) inset,
+        0 0 0 1px rgba(232,92,42,0.06),
+        0 4px 32px rgba(0,0,0,0.5);
+    }
+
+    .header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Static dot — glowing but not animated */
+    .logo-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 6px 2px rgba(232,92,42,0.6), 0 0 14px rgba(232,92,42,0.3);
+    }
+
+    .manage-btn {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-mid);
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .manage-btn:hover {
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 12px rgba(0,0,0,0.4), 0 0 16px rgba(232,92,42,0.08);
+    }
+
+    /* ── HERO ────────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      z-index: 10;
+      padding: 80px 0 56px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 5.5vw, 70px);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .hero h1 strong {
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    /* ── CONTROLS ROW ────────────────────────────────────────────────── */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 13px; top: 50%;
+      transform: translateY(-50%);
+      width: 13px; height: 13px;
+      color: var(--text-dim);
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+    .search-input {
+      width: 100%;
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      padding: 8px 36px 8px 34px;
+      border-radius: 100px;
+      outline: none;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input:focus {
+      border-color: rgba(232,92,42,0.4);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 12px rgba(0,0,0,0.35), 0 0 0 3px rgba(232,92,42,0.08);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-dim); font-size: 12px;
+      cursor: pointer; line-height: 1; padding: 2px;
+      transition: color 0.15s;
+    }
+    .search-clear:hover { color: var(--text-mid); }
+
+    .sort-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .sort-icon {
+      position: absolute;
+      left: 13px; top: 50%;
+      transform: translateY(-50%);
+      width: 13px; height: 13px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+    .sort-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-mid);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 32px 8px 34px;
+      border-radius: 100px;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, color 0.18s;
+    }
+    .sort-select:focus { border-color: rgba(232,92,42,0.4); }
+    .sort-select option { background: #1a1a1a; color: var(--text); }
+    /* chevron */
+    .sort-wrap::after {
+      content: '›';
+      position: absolute;
+      right: 13px; top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      color: var(--text-dim);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    /* ── FILTER ──────────────────────────────────────────────────────── */
+    .filter-wrap {
+      position: relative;
+      z-index: 10;
+      margin-bottom: 20px;
+    }
+
+    .filter-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-mid);
+      background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 2px 8px rgba(0,0,0,0.3);
+      transition: border-color 0.18s, color 0.18s, box-shadow 0.18s, background 0.18s;
+      user-select: none;
+    }
+    .filter-toggle-btn:hover {
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .filter-toggle-btn.open {
+      border-color: rgba(232,92,42,0.45);
+      color: #ffb899;
+      background: linear-gradient(160deg, rgba(232,92,42,0.13) 0%, rgba(232,92,42,0.06) 100%);
+      box-shadow: 0 1px 0 rgba(255,160,100,0.08) inset, 0 2px 12px rgba(0,0,0,0.35), 0 0 18px rgba(232,92,42,0.12);
+    }
+
+    .filter-toggle-btn svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; stroke-width: 1.8;
+      fill: none; stroke-linecap: round; flex-shrink: 0;
+    }
+
+    .filter-active-label { font-size: 11px; color: rgba(255,184,153,0.65); }
+
+    .filter-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.28s ease, opacity 0.2s ease;
+    }
+    .filter-pills-row.open { max-height: 160px; opacity: 1; }
+
+    .filter-pill {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      padding: 6px 16px;
+      border-radius: 100px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 2px 6px rgba(0,0,0,0.25);
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+    .filter-pill:hover {
+      border-color: rgba(255,255,255,0.18);
+      color: var(--text);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 2px 10px rgba(0,0,0,0.35);
+    }
+
+    /* ── TOOLS GRID ──────────────────────────────────────────────────── */
+    .tools-section { position: relative; z-index: 10; padding-bottom: 80px; }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 12px;
+    }
+
+    /* Cards — glass lookalike via layered box-shadow + shine, NO backdrop-filter */
+    .tool-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 26px 26px 22px;
+      border-radius: 18px;
+      /* Layered border: subtle white rim + orange glow underneath */
+      border: 1px solid rgba(255,255,255,0.09);
+      /* Glass-depth via background gradient */
+      background: linear-gradient(
+        160deg,
+        rgba(255,255,255,0.055) 0%,
+        rgba(255,255,255,0.025) 50%,
+        rgba(232,92,42,0.03) 100%
+      );
+      /* Depth shadow */
+      box-shadow:
+        0 2px 0 rgba(255,255,255,0.05) inset,   /* top inner highlight */
+        0 1px 3px rgba(0,0,0,0.4),
+        0 8px 32px rgba(0,0,0,0.35);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+      will-change: transform;
+    }
+
+    /* Shine stripe across top — fakes the glass specular highlight */
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 12px; right: 12px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      border-radius: 1px;
+    }
+
+    /* Orange rim glow on hover */
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 19px;
+      border: 1px solid rgba(232,92,42,0);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      pointer-events: none;
+    }
+
+    .tool-card:hover {
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-3px);
+      box-shadow:
+        0 2px 0 rgba(255,255,255,0.06) inset,
+        0 2px 4px rgba(0,0,0,0.5),
+        0 16px 48px rgba(0,0,0,0.45),
+        0 0 40px rgba(232,92,42,0.07);
+    }
+    .tool-card:hover::after {
+      border-color: rgba(232,92,42,0.3);
+      box-shadow: 0 0 18px rgba(232,92,42,0.1);
+    }
+
+    .tool-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .tool-number { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; color: var(--text-dim); }
+
+    .tool-arrow {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--text-dim);
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+      flex-shrink: 0;
+    }
+    .tool-card:hover .tool-arrow {
+      border-color: rgba(232,92,42,0.4);
+      background: rgba(232,92,42,0.1);
+      color: #ffb899;
+    }
+
+    .tool-name { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.25; letter-spacing: -0.01em; }
+    .tool-desc { font-size: 13px; font-weight: 300; color: var(--text-mid); line-height: 1.65; flex: 1; }
+    .tool-author { font-size: 12px; color: var(--text-dim); }
+    .tool-author span { color: var(--text-mid); }
+
+    .tool-card-footer {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .tool-tags { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+    .tool-tag {
+      font-size: 11px; font-weight: 400;
+      letter-spacing: 0.03em;
+      border-radius: 100px;
+      padding: 3px 10px;
+    }
+
+    /* ── EMPTY ───────────────────────────────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1; text-align: center;
+      padding: 80px 20px; color: var(--text-dim);
+      font-size: 14px; font-weight: 300;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────────────────── */
+    footer {
+      position: relative; z-index: 10;
+      text-align: center;
+      padding: 40px 32px;
+      color: var(--text-dim);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── MANAGER OVERLAY ─────────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 100;
+      overflow-y: auto;
+      padding: 32px 20px;
+      /* Solid overlay — no backdrop-filter */
+      background: rgba(0,0,0,0.82);
+      display: flex; align-items: flex-start; justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+
+    .manager-panel {
+      position: relative;
+      width: 100%; max-width: 660px;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.9);
+      transform: translateY(10px);
+      transition: transform 0.22s ease;
+    }
+    .overlay.open .manager-panel { transform: translateY(0); }
+
+    .manager-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 28px;
+    }
+    .manager-eyebrow {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--orange); margin-bottom: 6px;
+    }
+    .manager-title {
+      font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--text);
+    }
+    .close-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-mid); font-size: 13px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s; flex-shrink: 0; margin-top: 2px;
+    }
+    .close-btn:hover { background: #222; color: var(--text); }
+
+    /* TABS */
+    .manager-tabs {
+      display: flex; gap: 4px; margin-bottom: 28px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px;
+    }
+    .manager-tab {
+      flex: 1; font-family: var(--sans); font-size: 13px; font-weight: 500;
+      color: var(--text-dim); background: none; border: none;
+      padding: 8px 10px; border-radius: 7px; cursor: pointer;
+      transition: background 0.15s, color 0.15s; white-space: nowrap;
+    }
+    .manager-tab:hover { color: var(--text-mid); background: rgba(255,255,255,0.04); }
+    .manager-tab.active { background: #222; color: var(--text); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* FORM */
+    .section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(232,92,42,0.15);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-mid); margin-bottom: 6px; }
+    .form-hint { font-size: 11px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+
+    .form-input, .form-textarea {
+      width: 100%; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--text);
+      font-family: var(--sans); font-size: 13px; font-weight: 300;
+      padding: 10px 13px; border-radius: 9px;
+      outline: none; resize: vertical;
+      transition: border-color 0.15s;
+    }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); }
+    .form-input:focus, .form-textarea:focus { border-color: rgba(232,92,42,0.45); }
+    .form-textarea { min-height: 74px; line-height: 1.6; }
+
+    /* TAG CHIPS */
+    .tag-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .tag-chip {
+      font-family: var(--sans); font-size: 12px; font-weight: 400;
+      color: var(--text-mid); cursor: pointer;
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 5px 13px; border-radius: 100px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .tag-chip:hover { border-color: var(--border-hover); color: var(--text); }
+
+    /* TOOLS LIST */
+    .tools-list { margin-bottom: 8px; }
+    .tool-list-item {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .tool-list-name { font-size: 14px; font-weight: 500; color: var(--text); flex: 1; min-width: 120px; }
+    .tool-list-author { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+    /* EDIT ROW */
+    .edit-row {
+      width: 100%; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; margin: 6px 0 8px;
+    }
+    .edit-row .form-input, .edit-row .form-textarea { margin-bottom: 8px; }
+    .edit-row-btns { display: flex; gap: 8px; margin-top: 4px; }
+
+    /* BUTTONS */
+    .btn { font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 10px 22px; border-radius: 100px; cursor: pointer; border: none; transition: background 0.15s, box-shadow 0.15s, transform 0.15s; }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover { background: #d44e20; transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text-mid); }
+    .btn-secondary:hover { border-color: var(--border-hover); color: var(--text); }
+
+    .btn-danger { background: none; border: 1px solid rgba(255,80,80,0.2); color: rgba(255,120,120,0.6); font-family: var(--sans); font-size: 11px; padding: 5px 12px; border-radius: 100px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+    .btn-danger:hover { border-color: rgba(255,80,80,0.55); color: #ff8080; }
+
+    .btn-edit { background: none; border: 1px solid var(--border); color: var(--text-dim); font-family: var(--sans); font-size: 11px; padding: 5px 12px; border-radius: 100px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+    .btn-edit:hover { border-color: var(--border-hover); color: var(--text-mid); }
+
+    .edit-save-btn { font-family: var(--sans); font-size: 12px; font-weight: 500; background: var(--orange); color: #fff; border: none; padding: 7px 16px; border-radius: 100px; cursor: pointer; transition: background 0.15s; }
+    .edit-save-btn:hover { background: #d44e20; }
+    .edit-cancel-btn { font-family: var(--sans); font-size: 12px; background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 7px 14px; border-radius: 100px; cursor: pointer; transition: color 0.15s; }
+    .edit-cancel-btn:hover { color: var(--text-mid); }
+
+    .form-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+    /* NEW CAT ROW */
+    .new-cat-row { display: flex; gap: 8px; }
+    .new-cat-row .form-input { flex: 1; }
+    .btn-add-cat {
+      font-family: var(--sans); font-size: 12px; font-weight: 500;
+      background: rgba(232,92,42,0.12); border: 1px solid rgba(232,92,42,0.25);
+      color: #ffb899; padding: 0 16px; border-radius: 9px;
+      cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .btn-add-cat:hover { background: rgba(232,92,42,0.22); }
+
+    /* EXPORT */
+    .export-note { font-size: 13px; font-weight: 300; color: var(--text-mid); line-height: 1.65; margin-bottom: 14px; }
+    .export-steps { font-size: 12px; font-weight: 300; color: var(--text-dim); line-height: 2.1; margin-bottom: 20px; }
+    .export-steps strong { color: var(--orange); font-weight: 500; }
+
+    @media (max-width: 600px) {
+      header, .page-wrap { padding-left: 16px; padding-right: 16px; }
+      .hero { padding: 52px 0 40px; }
+      .manager-panel { padding: 22px; }
+      .hero h1 { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">PLTFRM <span class="logo-dot"></span></a>
+    <button class="manage-btn" id="open-manager-btn">Manage Page</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="page-wrap">
+  <section class="hero">
+    <h1>Amazon Ads <strong>Team Tools</strong></h1>
+  </section>
+
+  <!-- CONTROLS: SEARCH + SORT + FILTER -->
+  <div class="controls-row">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/>
+        <line x1="8.8" y1="8.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <input type="text" class="search-input" id="search-input" placeholder="Search tools..." autocomplete="off" />
+      <button class="search-clear" id="search-clear" style="display:none">&#x2715;</button>
+    </div>
+    <div class="sort-wrap">
+      <svg class="sort-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <line x1="1" y1="3" x2="9" y2="3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="1" y1="7" x2="7" y2="7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <line x1="1" y1="11" x2="5" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <select class="sort-select" id="sort-select">
+        <option value="default">Default order</option>
+        <option value="alpha">A → Z</option>
+        <option value="alpha-desc">Z → A</option>
+        <option value="author">By author</option>
+      </select>
+    </div>
+    <button class="filter-toggle-btn" id="filter-toggle-btn">
+      <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+        <line x1="1" y1="3" x2="13" y2="3"/>
+        <line x1="1" y1="7" x2="13" y2="7"/>
+        <line x1="1" y1="11" x2="13" y2="11"/>
+      </svg>
+      Filters
+      <span class="filter-active-label" id="filter-active-label"></span>
+    </button>
+  </div>
+  <div class="filter-wrap">
+    <div class="filter-pills-row" id="filter-bar"></div>
+  </div>
+
+  <!-- GRID -->
+  <div class="tools-section">
+    <div class="tools-grid" id="tools-grid"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>PLTFRM &mdash; Amazon Ads Tooling by Vendo</footer>
+
+<!-- MANAGER OVERLAY -->
+<div class="overlay" id="manager-overlay">
+  <div class="manager-panel">
+
+    <div class="manager-header">
+      <div>
+        <div class="manager-eyebrow">Page Manager</div>
+        <h2 class="manager-title">Manage Page</h2>
+      </div>
+      <button class="close-btn" id="close-manager-btn">&#x2715;</button>
+    </div>
+
+    <div class="manager-tabs">
+      <button class="manager-tab active" data-tab="tools">Tools</button>
+      <button class="manager-tab" data-tab="tags">Tags &amp; Colors</button>
+      <button class="manager-tab" data-tab="export">Export</button>
+    </div>
+
+    <!-- TOOLS TAB -->
+    <div class="tab-pane active" id="tab-tools">
+      <div class="section-label">Current Tools</div>
+      <div class="tools-list" id="manager-tools-list"></div>
+
+      <div class="section-label" style="margin-top:26px">Add New Tool</div>
+      <div class="form-group">
+        <label class="form-label">Tool Name</label>
+        <input type="text" class="form-input" id="new-name" placeholder="e.g. Search Term Analyzer" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input type="text" class="form-input" id="new-url" placeholder="https://hunterg-vendo.github.io/your-tool/" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="new-desc" placeholder="What does this tool do? 1&#8211;2 sentences."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Author</label>
+        <input type="text" class="form-input" id="new-author" placeholder="e.g. Hunter G." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <div class="tag-chips" id="tag-checkboxes"></div>
+        <p class="form-hint">Select one or more. Add tags in the Tags &amp; Colors tab.</p>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="add-tool-btn">+ Add Tool</button>
+      </div>
+    </div>
+
+    <!-- TAGS TAB -->
+    <div class="tab-pane" id="tab-tags">
+      <div class="section-label">Existing Tags</div>
+      <div id="tag-color-manager" style="margin-bottom:24px"></div>
+      <div class="section-label">Add New Tag</div>
+      <div class="new-cat-row" style="margin-bottom:8px">
+        <input type="text" class="form-input" id="new-cat-input" placeholder="Tag name..." />
+        <input type="color" id="new-cat-color" value="#4f9eff" title="Pick color"
+          style="width:42px;height:42px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;padding:3px;flex-shrink:0;" />
+        <button class="btn-add-cat" id="add-cat-btn">+ Add</button>
+      </div>
+      <p class="form-hint">Pick a name and color, then click Add. Click any color swatch to change an existing tag's color.</p>
+    </div>
+
+    <!-- EXPORT TAB -->
+    <div class="tab-pane" id="tab-export">
+      <div class="section-label">Export &amp; Deploy</div>
+      <p class="export-note">Download the updated index.html with all your tools and tags baked in. Upload to your GitHub Pages repo to go live.</p>
+      <div class="export-steps">
+        <strong>01</strong> Make changes in the Tools or Tags tabs<br>
+        <strong>02</strong> Come here and click Export HTML<br>
+        <strong>03</strong> Upload index.html to your GitHub Pages repo<br>
+        <strong>04</strong> Done &mdash; live instantly
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="export-btn">&#8595;&nbsp; Export index.html</button>
+        <button class="btn btn-secondary" id="cancel-btn">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+
+  // ── DEFAULT PALETTE ──────────────────────────────────────────────────
+  var DEFAULT_PALETTE = [
+    { name: 'Report Analyzers',   color: '#e85c2a' },
+    { name: 'Reporting',          color: '#4f9eff' },
+    { name: 'Bulk Optimizations', color: '#34d399' }
+  ];
+
+  // ── DEFAULT TOOLS ────────────────────────────────────────────────────
+  var DEFAULT_TOOLS = [
+    {
+      id: 't1',
+      name: 'Search Term Report Analyzer',
+      url: 'https://hunterg-vendo.github.io/Search-Term-Report-Analyzer/',
+      desc: 'Upload a Sponsored Products Search Term report to surface new keyword and ASIN targets, identify wasted spend, and flag brand slippage — all in one pass.',
+      tags: ['Report Analyzers', 'Reporting'],
+      author: 'Hunter G.'
+    },
+    {
+      id: 't2',
+      name: 'Daypart Analyzer',
+      url: 'https://hunterg-vendo.github.io/Daypart-Analyzer/',
+      desc: 'Analyze your Amazon Ads performance by hour and day of week to find the best bid adjustment windows and cut spend during low-converting time slots.',
+      tags: ['Report Analyzers'],
+      author: 'Hunter G.'
+    },
+    {
+      id: 't3',
+      name: 'Monthly Callouts Generator',
+      url: 'https://rickygrossman5-wq.github.io/Monthly-Callouts-Generator/',
+      desc: 'Generate polished monthly callout summaries fast — paste in your data and get client-ready performance highlights in seconds.',
+      tags: ['Reporting'],
+      author: 'Ricky G.'
+    }
+  ];
+
+  // ── STATE ────────────────────────────────────────────────────────────
+  var tools, categories;
+  try {
+    var st = localStorage.getItem('pltfrm_tools');
+    var sc = localStorage.getItem('pltfrm_cats');
+    tools      = st ? JSON.parse(st) : JSON.parse(JSON.stringify(DEFAULT_TOOLS));
+    categories = sc ? JSON.parse(sc) : JSON.parse(JSON.stringify(DEFAULT_PALETTE));
+  } catch(e) {
+    tools      = JSON.parse(JSON.stringify(DEFAULT_TOOLS));
+    categories = JSON.parse(JSON.stringify(DEFAULT_PALETTE));
+  }
+
+  var activeFilter = 'All';
+  var editingIdx   = -1;
+  var filterOpen   = false;
+
+  function save() {
+    try {
+      localStorage.setItem('pltfrm_tools', JSON.stringify(tools));
+      localStorage.setItem('pltfrm_cats',  JSON.stringify(categories));
+    } catch(e) {}
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function getCatColor(name) {
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i].name === name) return categories[i].color;
+    }
+    return '#666';
+  }
+
+  function hexAlpha(hex, a) {
+    var r = parseInt(hex.slice(1,3),16);
+    var g = parseInt(hex.slice(3,5),16);
+    var b = parseInt(hex.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+','+a+')';
+  }
+
+  // ── FILTER ───────────────────────────────────────────────────────────
+  function toggleFilter() {
+    filterOpen = !filterOpen;
+    document.getElementById('filter-toggle-btn').classList.toggle('open', filterOpen);
+    document.getElementById('filter-bar').classList.toggle('open', filterOpen);
+  }
+
+  function updateActiveLabel() {
+    var el = document.getElementById('filter-active-label');
+    if (activeFilter !== 'All') {
+      var col = getCatColor(activeFilter);
+      el.innerHTML = '&mdash; <span style="color:' + col + '">' + esc(activeFilter) + '</span>';
+    } else {
+      el.innerHTML = '';
+    }
+  }
+
+  function renderFilterBar() {
+    var bar = document.getElementById('filter-bar');
+    var html = '';
+    var allActive = activeFilter === 'All';
+    html += '<button class="filter-pill" data-cat="All" style="'
+      + (allActive ? 'background:rgba(232,92,42,0.15);border-color:rgba(232,92,42,0.4);color:#ffb899;' : '')
+      + '">All</button>';
+    categories.forEach(function(cat) {
+      var isActive = cat.name === activeFilter;
+      var col = cat.color;
+      var style = isActive
+        ? 'background:'+hexAlpha(col,0.15)+';border-color:'+hexAlpha(col,0.5)+';color:'+col+';'
+        : 'border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.7)+';';
+      html += '<button class="filter-pill" data-cat="'+esc(cat.name)+'" style="'+style+'">'
+        + '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+col+';margin-right:6px;vertical-align:middle;"></span>'
+        + esc(cat.name) + '</button>';
+    });
+    bar.innerHTML = html;
+    updateActiveLabel();
+  }
+
+  // ── GRID ─────────────────────────────────────────────────────────────
+  function renderGrid() {
+    var grid = document.getElementById('tools-grid');
+    var query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+    var sortVal = document.getElementById('sort-select').value;
+
+    // 1. Filter by active tag
+    var list = activeFilter === 'All' ? tools.slice() : tools.filter(function(t) {
+      return Array.isArray(t.tags) && t.tags.indexOf(activeFilter) !== -1;
+    });
+
+    // 2. Filter by search query
+    if (query) {
+      list = list.filter(function(t) {
+        return t.name.toLowerCase().indexOf(query) !== -1
+          || (t.desc && t.desc.toLowerCase().indexOf(query) !== -1)
+          || (t.author && t.author.toLowerCase().indexOf(query) !== -1);
+      });
+    }
+
+    // 3. Sort
+    if (sortVal === 'alpha') {
+      list.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    } else if (sortVal === 'alpha-desc') {
+      list.sort(function(a,b){ return b.name.localeCompare(a.name); });
+    } else if (sortVal === 'author') {
+      list.sort(function(a,b){ return (a.author||'').localeCompare(b.author||''); });
+    }
+
+    if (!list.length) {
+      var msg = query ? 'No tools match &ldquo;' + esc(query) + '&rdquo;.' : 'No tools in &ldquo;' + esc(activeFilter) + '&rdquo; yet.';
+      grid.innerHTML = '<div class="empty-state">' + msg + '</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function(t, i) {
+      var tagHtml = '';
+      (t.tags || []).forEach(function(tag) {
+        var col = getCatColor(tag);
+        tagHtml += '<span class="tool-tag" style="color:'+col+';background:'+hexAlpha(col,0.1)+';border:1px solid '+hexAlpha(col,0.25)+';">'
+          + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+          + esc(tag) + '</span>';
+      });
+      html += '<a class="tool-card" href="'+esc(t.url)+'" target="_blank" rel="noopener">'
+        + '<div class="tool-card-top"><span class="tool-number">'+pad(i+1)+'</span><span class="tool-arrow">&#8599;</span></div>'
+        + '<div class="tool-name">'+esc(t.name)+'</div>'
+        + '<div class="tool-desc">'+esc(t.desc)+'</div>'
+        + '<div class="tool-author">By <span>'+esc(t.author||'Vendo')+'</span></div>'
+        + '<div class="tool-card-footer"><div class="tool-tags">'+tagHtml+'</div></div>'
+        + '</a>';
+    });
+    grid.innerHTML = html;
+  }
+
+  // ── MANAGER: TOOLS LIST ──────────────────────────────────────────────
+  function renderManagerList() {
+    var el = document.getElementById('manager-tools-list');
+    if (!tools.length) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:12px 0">No tools yet.</div>';
+      return;
+    }
+    var html = '';
+    tools.forEach(function(t, i) {
+      html += '<div class="tool-list-item">'
+        + '<span class="tool-list-name">'+esc(t.name)+'</span>'
+        + '<span class="tool-list-author">'+esc(t.author||'')+'</span>'
+        + '<button class="btn-edit" data-edit="'+i+'">Edit</button>'
+        + '<button class="btn-danger" data-idx="'+i+'">Remove</button>'
+        + '</div>';
+      if (editingIdx === i) {
+        var tagCheckboxes = categories.map(function(cat) {
+          var col = cat.color;
+          var checked = Array.isArray(t.tags) && t.tags.indexOf(cat.name) !== -1;
+          var checkedStyle = checked
+            ? 'background:'+hexAlpha(col,0.18)+';border-color:'+hexAlpha(col,0.5)+';color:'+col+';'
+            : 'border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.7)+';';
+          return '<span class="tag-chip edit-tag-chip' + (checked ? ' checked' : '') + '" data-cat="'+esc(cat.name)+'" style="'+checkedStyle+'">'
+            + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+            + esc(cat.name)+'</span>';
+        }).join('');
+
+        html += '<div class="edit-row">'
+          + '<input class="form-input" id="edit-name-'+i+'" value="'+esc(t.name)+'" placeholder="Tool Name" />'
+          + '<input class="form-input" id="edit-url-'+i+'" value="'+esc(t.url)+'" placeholder="URL" />'
+          + '<textarea class="form-textarea" id="edit-desc-'+i+'" placeholder="Description">'+esc(t.desc)+'</textarea>'
+          + '<input class="form-input" id="edit-author-'+i+'" value="'+esc(t.author||'')+'" placeholder="Author" />'
+          + '<div style="margin:8px 0 4px;font-size:11px;font-weight:500;color:var(--text-mid);letter-spacing:0.05em;">Tags</div>'
+          + '<div class="tag-chips edit-tag-chips" id="edit-tags-'+i+'" style="margin-bottom:10px;">'+tagCheckboxes+'</div>'
+          + '<div class="edit-row-btns">'
+          + '<button class="edit-save-btn" data-save="'+i+'">Save</button>'
+          + '<button class="edit-cancel-btn" data-cancel="1">Cancel</button>'
+          + '</div></div>';
+      }
+    });
+    el.innerHTML = html;
+  }
+
+  // ── MANAGER: TAGS ────────────────────────────────────────────────────
+  function renderTagColorManager() {
+    var el = document.getElementById('tag-color-manager');
+    if (!categories.length) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--text-dim);padding:8px 0">No tags yet.</div>';
+      return;
+    }
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+    categories.forEach(function(cat, i) {
+      html += '<div style="display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px 6px 8px;">'
+        + '<input type="color" value="'+esc(cat.color)+'" data-cat-idx="'+i+'" title="Change color"'
+        + ' style="width:20px;height:20px;border:none;border-radius:50%;cursor:pointer;background:none;padding:0;flex-shrink:0;" />'
+        + '<span class="cat-label" style="font-size:13px;color:'+cat.color+';font-weight:500;">'+esc(cat.name)+'</span>'
+        + '<button data-del-cat="'+i+'" style="background:none;border:none;color:rgba(255,100,100,0.3);cursor:pointer;font-size:12px;line-height:1;padding:0 0 0 4px;transition:color 0.15s;">&#x2715;</button>'
+        + '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderTagChips() {
+    var c = document.getElementById('tag-checkboxes');
+    var html = '';
+    categories.forEach(function(cat) {
+      var col = cat.color;
+      html += '<span class="tag-chip" data-cat="'+esc(cat.name)+'" style="border-color:'+hexAlpha(col,0.25)+';color:'+hexAlpha(col,0.75)+';">'
+        + '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+col+';margin-right:5px;vertical-align:middle;"></span>'
+        + esc(cat.name)+'</span>';
+    });
+    c.innerHTML = html;
+  }
+
+  function getSelectedTags() {
+    var out = [];
+    document.querySelectorAll('#tag-checkboxes .tag-chip.checked').forEach(function(el) {
+      out.push(el.getAttribute('data-cat'));
+    });
+    return out;
+  }
+
+  // ── ADD CATEGORY ─────────────────────────────────────────────────────
+  function addCategory() {
+    var input = document.getElementById('new-cat-input');
+    var cp    = document.getElementById('new-cat-color');
+    var val   = input.value.trim();
+    var col   = cp ? cp.value : '#4f9eff';
+    if (!val) return;
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i].name === val) { input.value = ''; return; }
+    }
+    categories.push({ name: val, color: col });
+    save(); renderTagColorManager(); renderTagChips(); renderFilterBar();
+    input.value = '';
+  }
+
+  // ── ADD TOOL ─────────────────────────────────────────────────────────
+  function addTool() {
+    var name   = document.getElementById('new-name').value.trim();
+    var url    = document.getElementById('new-url').value.trim();
+    var desc   = document.getElementById('new-desc').value.trim();
+    var author = document.getElementById('new-author').value.trim();
+    var tags   = getSelectedTags();
+    if (!name || !url) { alert('Name and URL are required.'); return; }
+    tools.push({ id: 't'+Date.now(), name:name, url:url, desc:desc||'No description.', tags:tags.length?tags:['Reporting'], author:author||'Vendo' });
+    save(); activeFilter='All'; renderAll();
+    ['new-name','new-url','new-desc','new-author'].forEach(function(id){ document.getElementById(id).value=''; });
+    renderTagChips();
+  }
+
+  // ── TAB SWITCHING ────────────────────────────────────────────────────
+  function switchTab(tabId) {
+    document.querySelectorAll('.manager-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelector('[data-tab="'+tabId+'"]').classList.add('active');
+    document.getElementById('tab-'+tabId).classList.add('active');
+    if (tabId === 'tools') { renderManagerList(); renderTagChips(); }
+    if (tabId === 'tags')  { renderTagColorManager(); renderTagChips(); }
+  }
+
+  // ── OPEN / CLOSE ─────────────────────────────────────────────────────
+  function openManager()  {
+    switchTab('tools');
+    document.getElementById('manager-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeManager() {
+    document.getElementById('manager-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ── EXPORT ───────────────────────────────────────────────────────────
+  function exportHTML() {
+    var html = document.documentElement.outerHTML;
+    html = html.replace(/var DEFAULT_PALETTE = \[[\s\S]*?\];/, 'var DEFAULT_PALETTE = '+JSON.stringify(categories,null,2)+';');
+    html = html.replace(/var DEFAULT_TOOLS = \[[\s\S]*?\];/,   'var DEFAULT_TOOLS = '+JSON.stringify(tools,null,2)+';');
+    html = html.replace(
+      /var tools, categories;[\s\S]*?categories = JSON\.parse\(JSON\.stringify\(DEFAULT_PALETTE\)\);\s*\} catch[\s\S]*?\}/,
+      'var tools = JSON.parse(JSON.stringify(DEFAULT_TOOLS));\n  var categories = JSON.parse(JSON.stringify(DEFAULT_PALETTE));'
+    );
+    var blob = new Blob(['<!DOCTYPE html>\n'+html.replace(/^<!DOCTYPE html>\n?/i,'')], {type:'text/html'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  function renderAll() { renderFilterBar(); renderGrid(); renderManagerList(); }
+
+  // ── EVENT DELEGATION ─────────────────────────────────────────────────
+  // Filter bar
+  document.getElementById('filter-bar').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-cat]');
+    if (!btn) return;
+    activeFilter = btn.getAttribute('data-cat');
+    renderFilterBar(); renderGrid();
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', function() {
+    var hasVal = this.value.length > 0;
+    document.getElementById('search-clear').style.display = hasVal ? 'block' : 'none';
+    renderGrid();
+  });
+  document.getElementById('search-clear').addEventListener('click', function() {
+    document.getElementById('search-input').value = '';
+    this.style.display = 'none';
+    document.getElementById('search-input').focus();
+    renderGrid();
+  });
+
+  // Sort
+  document.getElementById('sort-select').addEventListener('change', renderGrid);
+
+  // Filter toggle
+  document.getElementById('filter-toggle-btn').addEventListener('click', toggleFilter);
+
+  // Manager header buttons
+  document.getElementById('open-manager-btn').addEventListener('click', openManager);
+  document.getElementById('close-manager-btn').addEventListener('click', closeManager);
+  document.getElementById('manager-overlay').addEventListener('click', function(e){ if (e.target===this) closeManager(); });
+
+  // Tabs
+  document.querySelector('.manager-tabs').addEventListener('click', function(e) {
+    var btn = e.target.closest('.manager-tab');
+    if (btn) switchTab(btn.getAttribute('data-tab'));
+  });
+
+  // Tools list — edit / save / cancel / remove
+  document.getElementById('manager-tools-list').addEventListener('click', function(e) {
+    var editChip = e.target.closest('.edit-tag-chip');
+    if (editChip) {
+      editChip.classList.toggle('checked');
+      var col = getCatColor(editChip.getAttribute('data-cat'));
+      if (editChip.classList.contains('checked')) {
+        editChip.style.background = hexAlpha(col,0.18);
+        editChip.style.borderColor = hexAlpha(col,0.5);
+        editChip.style.color = col;
+      } else {
+        editChip.style.background = '';
+        editChip.style.borderColor = hexAlpha(col,0.25);
+        editChip.style.color = hexAlpha(col,0.7);
+      }
+      return;
+    }
+    var removeBtn = e.target.closest('[data-idx]');
+    if (removeBtn) {
+      var idx = parseInt(removeBtn.getAttribute('data-idx'), 10);
+      if (confirm('Remove "'+tools[idx].name+'"?')) {
+        tools.splice(idx,1); editingIdx=-1; save(); activeFilter='All'; renderAll();
+      }
+      return;
+    }
+    var editBtn = e.target.closest('[data-edit]');
+    if (editBtn) {
+      var idx = parseInt(editBtn.getAttribute('data-edit'), 10);
+      editingIdx = editingIdx === idx ? -1 : idx;
+      renderManagerList(); return;
+    }
+    var saveBtn = e.target.closest('[data-save]');
+    if (saveBtn) {
+      var idx = parseInt(saveBtn.getAttribute('data-save'), 10);
+      var n = document.getElementById('edit-name-'+idx).value.trim();
+      var u = document.getElementById('edit-url-'+idx).value.trim();
+      var d = document.getElementById('edit-desc-'+idx).value.trim();
+      var a = document.getElementById('edit-author-'+idx).value.trim();
+      if (!n||!u) { alert('Name and URL are required.'); return; }
+      // Read checked edit tag chips
+      var newTags = [];
+      document.querySelectorAll('#edit-tags-'+idx+' .edit-tag-chip.checked').forEach(function(chip) {
+        newTags.push(chip.getAttribute('data-cat'));
+      });
+      tools[idx].name=n; tools[idx].url=u; tools[idx].desc=d; tools[idx].author=a;
+      tools[idx].tags = newTags.length ? newTags : tools[idx].tags;
+      editingIdx=-1; save(); renderAll(); return;
+    }
+    if (e.target.closest('[data-cancel]')) { editingIdx=-1; renderManagerList(); }
+  });
+
+  // Tag chips (add tool)
+  document.getElementById('tag-checkboxes').addEventListener('click', function(e) {
+    var chip = e.target.closest('.tag-chip');
+    if (!chip) return;
+    chip.classList.toggle('checked');
+    var col = getCatColor(chip.getAttribute('data-cat'));
+    if (chip.classList.contains('checked')) {
+      chip.style.background = hexAlpha(col,0.18);
+      chip.style.borderColor = hexAlpha(col,0.5);
+      chip.style.color = col;
+    } else {
+      chip.style.background = '';
+      chip.style.borderColor = hexAlpha(col,0.25);
+      chip.style.color = hexAlpha(col,0.75);
+    }
+  });
+
+  // Tag color manager
+  document.getElementById('tag-color-manager').addEventListener('input', function(e) {
+    var inp = e.target.closest('[data-cat-idx]');
+    if (!inp) return;
+    var idx = parseInt(inp.getAttribute('data-cat-idx'), 10);
+    categories[idx].color = inp.value;
+    var label = inp.parentElement.querySelector('.cat-label');
+    if (label) label.style.color = inp.value;
+  });
+  document.getElementById('tag-color-manager').addEventListener('change', function(e) {
+    if (!e.target.closest('[data-cat-idx]')) return;
+    save(); renderFilterBar(); renderGrid();
+  });
+  document.getElementById('tag-color-manager').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-del-cat]');
+    if (!btn) return;
+    var idx = parseInt(btn.getAttribute('data-del-cat'), 10);
+    var name = categories[idx].name;
+    if (confirm('Delete tag "'+name+'"?')) {
+      categories.splice(idx,1);
+      tools.forEach(function(t){ if (Array.isArray(t.tags)) t.tags=t.tags.filter(function(tg){return tg!==name;}); });
+      save(); activeFilter='All'; renderAll(); renderTagColorManager(); renderTagChips();
+    }
+  });
+
+  // Add tool / add category / export / cancel
+  document.getElementById('add-tool-btn').addEventListener('click', addTool);
+  document.getElementById('add-cat-btn').addEventListener('click', addCategory);
+  document.getElementById('new-cat-input').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();addCategory();} });
+  document.getElementById('export-btn').addEventListener('click', exportHTML);
+  document.getElementById('cancel-btn').addEventListener('click', closeManager);
+
+  // ── INIT ─────────────────────────────────────────────────────────────
+  renderFilterBar();
+  renderGrid();
+
+})();
+</script>
+</body>
+</html>
