@@ -667,11 +667,15 @@
       4. The skill will be available in that project
     </div>
     <div class="skill-modal-actions">
-      <a class="btn-skill-open" id="skill-modal-link" href="#" target="_blank" rel="noopener">
+      <a class="btn-skill-open" id="skill-modal-link" href="#" target="_blank" rel="noopener" style="display:none;">
         <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><path d="M7 0L5.6 1.4 10.2 6H0v2h10.2L5.6 12.6 7 14l7-7z"></path></svg>
         Open Skill File
       </a>
-      <button class="btn btn-secondary" id="skill-modal-cancel" style="flex-shrink:0">Cancel</button>
+      <button class="btn-skill-open" id="skill-modal-download" style="display:none;">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L2 5h3V0h4v5h3L7 10zm-7 4h14v-2H0v2z"></path></svg>
+        Download Skill File
+      </button>
+      <button class="btn btn-secondary" id="skill-modal-cancel" style="flex-shrink:0">Close</button>
     </div>
   </div>
 </div>
@@ -749,9 +753,19 @@
         <label class="form-label">Tool Name</label>
         <input type="text" class="form-input" id="new-name" placeholder="e.g. Search Term Analyzer" data-keeper-edited="yes">
       </div>
-      <div class="form-group">
-        <label class="form-label">URL</label>
-        <input type="text" class="form-input" id="new-url" placeholder="https://hunterg-vendo.github.io/your-tool/" data-keeper-edited="yes">
+      <div class="form-group" id="new-url-group">
+        <label class="form-label" id="new-url-label">URL</label>
+        <input type="text" class="form-input" id="new-url" placeholder="https://hunterg-vendo.github.io/your-tool/">
+      </div>
+      <div class="form-group" id="new-skill-file-group" style="display:none;">
+        <label class="form-label">Skill File</label>
+        <div id="new-skill-drop" style="border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:var(--black);transition:border-color .15s,background .15s;">
+          <div style="font-size:12px;font-weight:500;color:var(--gray);margin-bottom:3px;" id="new-skill-drop-label">Drop .skill file here or click to browse</div>
+          <div style="font-size:11px;color:var(--gray-dim);">Accepts .skill files</div>
+          <input type="file" id="new-skill-input" accept=".skill" style="display:none;">
+        </div>
+        <div id="new-skill-status" style="font-size:11px;color:var(--gray);margin-top:6px;display:none;"></div>
+        <p class="form-hint">The skill file will be stored directly in the hub — team members can download it with one click.</p>
       </div>
       <div class="form-group">
         <label class="form-label">Description</label>
@@ -1501,7 +1515,6 @@
     });
     grid.innerHTML = html;
 
-    // Skill card click
     grid.querySelectorAll('[data-skill-id]').forEach(function(card) {
       card.addEventListener('click', function() {
         var sid = this.getAttribute('data-skill-id');
@@ -1510,7 +1523,26 @@
         document.getElementById('skill-modal-name').textContent   = tool.name;
         document.getElementById('skill-modal-desc').textContent   = tool.desc;
         document.getElementById('skill-modal-author').textContent = tool.author || 'Vendo';
-        document.getElementById('skill-modal-link').href          = tool.url;
+        var linkBtn     = document.getElementById('skill-modal-link');
+        var downloadBtn = document.getElementById('skill-modal-download');
+        if (tool.skillData) {
+          // File is stored — show download button
+          linkBtn.style.display = 'none';
+          downloadBtn.style.display = 'flex';
+          downloadBtn.onclick = function() {
+            var fname = (tool.skillFileName || tool.name.replace(/\s+/g,'-').toLowerCase() + '.skill');
+            var blob = new Blob([atob(tool.skillData)], { type: 'application/octet-stream' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = fname;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(a.href);
+          };
+        } else {
+          // External link fallback
+          downloadBtn.style.display = 'none';
+          linkBtn.style.display = 'flex';
+          linkBtn.href = tool.url;
+        }
         document.getElementById('skill-modal-overlay').classList.add('open');
         document.body.style.overflow = 'hidden';
       });
@@ -1665,14 +1697,30 @@
     var finalUrl = newToolFormat === 'AMC Query' ? queryVal : urlVal;
 
     if (!name) { alert('Name is required.'); return; }
-    if (newToolFormat !== 'AMC Query' && !urlVal) { alert('URL is required.'); return; }
     if (newToolFormat === 'AMC Query' && !queryVal) { alert('Please paste your AMC SQL query.'); return; }
+    if (newToolFormat === 'Skill' && !newSkillFileData && !urlVal) { alert('Please upload a .skill file or provide a URL.'); return; }
+    if (newToolFormat === 'App' && !urlVal) { alert('URL is required.'); return; }
+
     var allTags = tags.filter(function(t) { return t !== 'App' && t !== 'Skill' && t !== 'AMC Query'; });
     allTags.push(newToolFormat);
-    tools.push({ id: 't'+Date.now(), name:name, url:finalUrl, desc:desc||'No description.', tags:allTags, author:author||'Vendo' });
+
+    var newTool = { id: 't'+Date.now(), name:name, url:finalUrl, desc:desc||'No description.', tags:allTags, author:author||'Vendo' };
+    // Attach skill file data if uploaded
+    if (newToolFormat === 'Skill' && newSkillFileData) {
+      newTool.skillData     = newSkillFileData;
+      newTool.skillFileName = newSkillFileName;
+      newTool.url           = ''; // no external link needed
+    }
+
+    tools.push(newTool);
     save(); activeFilters=[]; renderAll();
     logUpdate('tool-added', '"'+name+'" added to tools by '+(author||'Vendo'), '#c8c8c8');
     ['new-name','new-url','new-desc','new-author','new-query'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
+    newSkillFileData = null; newSkillFileName = null;
+    var status = document.getElementById('new-skill-status');
+    if (status) status.style.display = 'none';
+    var label = document.getElementById('new-skill-drop-label');
+    if (label) label.textContent = 'Drop .skill file here or click to browse';
     renderTagChips();
   }
 
@@ -2020,7 +2068,40 @@
 
   //  BAKED-IN GITHUB CONFIG 
   // Token is base64 encoded so GitHub secret scanning doesn't block the push
+  // ── SKILL FILE UPLOAD ─────────────────────────────────────────────────
+  var newSkillFileData = null;
+  var newSkillFileName = null;
+
+  function initSkillUpload() {
+    var drop  = document.getElementById('new-skill-drop');
+    var input = document.getElementById('new-skill-input');
+    if (!drop || !input) return;
+    newSkillFileData = null; newSkillFileName = null;
+
+    function handleSkillFile(file) {
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        newSkillFileData = btoa(e.target.result);
+        newSkillFileName = file.name;
+        var label = document.getElementById('new-skill-drop-label');
+        var status = document.getElementById('new-skill-status');
+        if (label) label.textContent = file.name;
+        if (status) { status.style.display = 'block'; status.style.color = 'var(--green)'; status.textContent = file.name + ' ready (' + Math.round(file.size/1024) + ' KB)'; }
+        drop.style.borderColor = 'rgba(255,255,255,0.28)';
+      };
+      reader.readAsBinaryString(file);
+    }
+
+    drop.addEventListener('click', function() { input.click(); });
+    input.addEventListener('change', function() { if (this.files[0]) handleSkillFile(this.files[0]); });
+    drop.addEventListener('dragover', function(e) { e.preventDefault(); drop.style.background='var(--card)'; drop.style.borderColor='rgba(255,255,255,0.28)'; });
+    drop.addEventListener('dragleave', function() { drop.style.background='var(--black)'; drop.style.borderColor='var(--line)'; });
+    drop.addEventListener('drop', function(e) { e.preventDefault(); drop.style.background='var(--black)'; if(e.dataTransfer.files[0]) handleSkillFile(e.dataTransfer.files[0]); });
+  }
+
   var GH_CONFIG = {"username":"HunterG-vendo","repo":"Amazon-Ads-Team-Tools","filepath":"index.html","token":"Z2hwX05wejhQRWxNY2cwbnRkYU4=.bG55WTV1UUZBUkxyTHA0Z2ZBdmM="};
+
 
   function ghDecodeToken(t) {
     if (!t) return '';
@@ -2478,9 +2559,17 @@
 
   // Show/hide AMC query textarea in add form
   function updateAmcQueryField() {
-    var field = document.getElementById('amc-query-field');
-    var urlField = document.querySelector('#tab-tools .form-group:nth-of-type(2)');
-    if (field) field.style.display = newToolFormat === 'AMC Query' ? 'block' : 'none';
+    var amcField   = document.getElementById('amc-query-field');
+    var skillField = document.getElementById('new-skill-file-group');
+    var urlGroup   = document.getElementById('new-url-group');
+    var urlLabel   = document.getElementById('new-url-label');
+    if (amcField)   amcField.style.display   = newToolFormat === 'AMC Query' ? 'block' : 'none';
+    if (skillField) skillField.style.display  = newToolFormat === 'Skill'     ? 'block' : 'none';
+    if (urlGroup)   urlGroup.style.display    = newToolFormat === 'AMC Query' ? 'none'  : 'block';
+    if (urlLabel) {
+      urlLabel.textContent = newToolFormat === 'Skill' ? 'SharePoint URL (optional — or upload file above)' : 'URL';
+    }
+    if (newToolFormat === 'Skill') initSkillUpload();
   }
 
   // Format toggle buttons (main page)
