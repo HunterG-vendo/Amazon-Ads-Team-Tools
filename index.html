@@ -306,6 +306,7 @@
     background: rgba(0,0,0,0.85);
     display: flex; align-items: center; justify-content: center; padding: 20px;
     opacity: 0; pointer-events: none; transition: opacity .18s;
+    overflow: hidden;
   }
   .skill-modal-overlay.open, .amc-modal-overlay.open { opacity: 1; pointer-events: auto; }
   .skill-modal, .amc-modal {
@@ -313,6 +314,7 @@
     border-radius: 10px; padding: 28px; width: 100%; max-width: 480px;
     box-shadow: 0 32px 80px rgba(0,0,0,0.9);
     transform: translateY(8px); transition: transform .22s; position: relative;
+    overflow: hidden;
   }
   .skill-modal-overlay.open .skill-modal,
   .amc-modal-overlay.open .amc-modal { transform: translateY(0); }
@@ -322,6 +324,9 @@
     letter-spacing: 0.16em; text-transform: uppercase;
     color: var(--gray-dim); margin-bottom: 10px;
     display: flex; align-items: center; gap: 6px;
+  }
+  .skill-modal-eyebrow svg, .amc-modal-eyebrow svg {
+    width: 12px; height: 12px; flex-shrink: 0;
   }
   .skill-modal-name, .amc-modal-name { font-family: var(--sans); font-size: 18px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
   .skill-modal-desc, .amc-modal-desc { font-family: var(--sans); font-size: 12px; color: var(--gray); line-height: 1.6; margin-bottom: 6px; }
@@ -551,7 +556,28 @@
   .pw-wrap { position: relative; }
   .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 10px; color: var(--gray-dim); cursor: pointer; font-family: var(--sans); }
 
-  /* Upload drop zone */
+  /* Activity log */
+  #updates-list { display: flex; flex-direction: column; }
+  .update-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+    position: relative;
+  }
+  .update-item:last-child { border-bottom: none; }
+  .update-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 4px;
+  }
+  .update-body { flex: 1; min-width: 0; }
+  .update-text {
+    font-family: var(--sans); font-size: 12px;
+    color: var(--white); line-height: 1.45;
+    margin-bottom: 3px;
+  }
+  .update-time {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--gray-dim); letter-spacing: 0.02em;
+  }
   #upload-drop-zone {
     border: 1px dashed var(--line) !important;
     border-radius: 8px !important;
@@ -576,7 +602,10 @@
 <header>
   <div class="header-inner">
     <a href="#" class="logo">PLTFRM <span class="logo-dot"></span></a>
-    <button class="manage-btn" id="open-manager-btn">Manage Page</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="manage-btn" id="open-submit-btn" style="color:var(--gray-dim);border-color:rgba(255,255,255,0.08);">Want to submit a tool?</button>
+      <button class="manage-btn" id="open-manager-btn">Manage Page</button>
+    </div>
   </div>
 </header>
 
@@ -652,7 +681,7 @@
   <div class="skill-modal">
     <button class="skill-modal-close" id="skill-modal-close">✕</button>
     <div class="skill-modal-eyebrow">
-      <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><path d="M6 0C2.69 0 0 2.69 0 6s2.69 6 6 6 6-2.69 6-6S9.31 0 6 0zm1 9H5V5h2v4zm0-6H5V1h2v2z"></path></svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6 0C2.69 0 0 2.69 0 6s2.69 6 6 6 6-2.69 6-6S9.31 0 6 0zm1 9H5V5h2v4zm0-6H5V1h2v2z"></path></svg>
       Claude Skill
     </div>
     <div class="skill-modal-name" id="skill-modal-name">Bulk Sheet Tool</div>
@@ -705,6 +734,53 @@
   </div>
 </div>
 
+<!-- SUBMIT TOOL MODAL -->
+<div class="skill-modal-overlay" id="submit-modal-overlay">
+  <div class="skill-modal" style="max-width:520px;">
+    <button class="skill-modal-close" id="submit-modal-close">&#x2715;</button>
+    <div class="skill-modal-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 0C2.69 0 0 2.69 0 6s2.69 6 6 6 6-2.69 6-6S9.31 0 6 0zm1 9H5V5h2v4zm0-6H5V1h2v2z"/></svg>
+      How to Submit a Tool
+    </div>
+    <div class="skill-modal-name">Want to add your tool to the hub?</div>
+    <div class="skill-modal-desc" style="margin-bottom:20px;">Follow these steps to get your tool reviewed and added for the whole team.</div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line-soft);">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--gray-dim);font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+        <div>
+          <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px;">Fill out the submission form</div>
+          <div style="font-family:var(--sans);font-size:12px;color:var(--gray);line-height:1.5;">Open the link below and fill out the tool submission sheet with your tool name, link, description, and tags.</div>
+          <a href="https://hunterg-vendo.github.io/Amazon-Ads-Team-Tools/" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--app-color);text-decoration:none;border:1px solid rgba(45,212,192,0.25);padding:4px 10px;border-radius:4px;">Open Submission Sheet &#8599;</a>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line-soft);">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--gray-dim);font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+        <div>
+          <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px;">Let Matan know</div>
+          <div style="font-family:var(--sans);font-size:12px;color:var(--gray);line-height:1.5;">Once you've filled out the sheet, ping Matan so he knows to take a look.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line-soft);">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--gray-dim);font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+        <div>
+          <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px;">Test your tool</div>
+          <div style="font-family:var(--sans);font-size:12px;color:var(--gray);line-height:1.5;">Run through your tool yourself or grab someone to help test it. Make sure it works as expected before approval.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;padding:14px 0;">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--gray-dim);font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+        <div>
+          <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px;">Get approved</div>
+          <div style="font-family:var(--sans);font-size:12px;color:var(--gray);line-height:1.5;">After testing, let Matan know and he will review and approve it to be added to the hub for the whole team.</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-secondary" id="submit-modal-close-btn" style="width:100%;">Got it</button>
+    </div>
+  </div>
+</div>
+
 <!-- PASSWORD GATE -->
 <div class="pw-gate" id="pw-gate">
   <div class="pw-box">
@@ -712,7 +788,7 @@
     <div class="pw-title">Enter Password</div>
     <div class="pw-sub">This area is restricted to page managers.</div>
     <div class="pw-wrap">
-      <input type="text" class="form-input" id="pw-input" placeholder="Password" autocomplete="off" style="padding-right:56px" data-keeper-lock-id="k-huxgum12vrs" data-keeper-edited="yes">
+      <input type="text" class="form-input" id="pw-input" placeholder="Password" autocomplete="off" style="padding-right:56px" data-keeper-lock-id="k-qsy36c5hmwk" data-keeper-edited="yes">
       <button class="pw-toggle" id="pw-show-btn">Hide</button>
     </div>
     <div class="pw-error" id="pw-error"></div>
@@ -810,7 +886,7 @@
         <div class="section-label" style="margin-bottom:0">Activity Log</div>
         <button class="btn-danger" id="clear-updates-btn" style="font-size:10px;padding:4px 10px;">Clear Log</button>
       </div>
-      <div id="updates-list"><div class="update-item"><div class="update-dot" style="background:#f87171;box-shadow:0 0 5px #f8717144;"></div><div class="update-body"><div class="update-text">"Amazon Ads Bulk ASIN Operations" removed</div><div class="update-time">Jul 10, 2026 at 3:43 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Bulk Sheet Tool" moved to position 4</div><div class="update-time">Jul 10, 2026 at 3:43 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Bulk Sheet Tool" moved to position 1</div><div class="update-time">Jul 10, 2026 at 3:43 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Bulk Sheet Tool" added to tools by Matan L.</div><div class="update-time">Jul 10, 2026 at 3:42 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"2+ Purchase and Not in SNS" moved to position 10</div><div class="update-time">Jul 10, 2026 at 3:40 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"DSP Media Plan" moved to position 2</div><div class="update-time">Jul 10, 2026 at 3:40 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"WoW Dashboard" moved to position 3</div><div class="update-time">Jul 10, 2026 at 3:40 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Amazon Ads Bulk ASIN Operations" moved to position 11</div><div class="update-time">Jul 10, 2026 at 3:40 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Multi-Brand Performance" moved to position 1</div><div class="update-time">Jul 10, 2026 at 3:39 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Daypart Analyzer" moved to position 6</div><div class="update-time">Jul 10, 2026 at 3:39 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#f87171;box-shadow:0 0 5px #f8717144;"></div><div class="update-body"><div class="update-text">"test" removed</div><div class="update-time">Jul 10, 2026 at 3:25 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"test" added to tools by test</div><div class="update-time">Jul 10, 2026 at 3:24 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"2+ Purchase and Not in SNS" added to tools by Matan L.</div><div class="update-time">Jun 10, 2026 at 6:39 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Brand Leakage Detector" added to tools by Hunter G.</div><div class="update-time">Jun 10, 2026 at 12:56 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"AMC SQL Generator" edited by manager</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#fff833;box-shadow:0 0 5px #fff83344;"></div><div class="update-body"><div class="update-text">New tag "SQL" created</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#41ff33;box-shadow:0 0 5px #41ff3344;"></div><div class="update-body"><div class="update-text">New tag "AMC" created</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"AMC SQL Generator" added to tools by Matan L.</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#ff811a;box-shadow:0 0 5px #ff811a44;"></div><div class="update-body"><div class="update-text">Tag "Report Analyzers" color updated</div><div class="update-time">Jun 9, 2026 at 3:15 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Amazon Ads Bulk ASIN Operations" edited by manager</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Monthly Callouts Generator" edited by manager</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Daypart Analyzer" edited by manager</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#85e0ff;box-shadow:0 0 5px #85e0ff44;"></div><div class="update-body"><div class="update-text">New tag "App" created</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#ff5252;box-shadow:0 0 5px #ff525244;"></div><div class="update-body"><div class="update-text">New tag "Skill" created</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Amazon Ads Bulk ASIN Operations" added to tools by Hunter G.</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Monthly Callouts Generator" edited by manager</div><div class="update-time">May 20, 2026 at 2:31 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Daypart Analyzer" edited by manager</div><div class="update-time">May 20, 2026 at 2:31 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#6d38ff;box-shadow:0 0 5px #6d38ff44;"></div><div class="update-body"><div class="update-text">New tag "SB" created</div><div class="update-time">May 20, 2026 at 2:31 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#383fff;box-shadow:0 0 5px #383fff44;"></div><div class="update-body"><div class="update-text">New tag "SP" created</div><div class="update-time">May 20, 2026 at 2:30 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#ff38f8;box-shadow:0 0 5px #ff38f844;"></div><div class="update-body"><div class="update-text">New tag "DSP" created</div><div class="update-time">May 20, 2026 at 2:30 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c3ff38;box-shadow:0 0 5px #c3ff3844;"></div><div class="update-body"><div class="update-text">New tag "PPC" created</div><div class="update-time">May 20, 2026 at 2:30 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#f87171;box-shadow:0 0 5px #f8717144;"></div><div class="update-body"><div class="update-text">"Search Term Report Analyzer" removed</div><div class="update-time">May 20, 2026 at 2:29 PM</div></div></div></div>
+      <div id="updates-list"><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"2+ Purchase and Not in SNS" added to tools by Matan L.</div><div class="update-time">Jun 10, 2026 at 6:39 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Brand Leakage Detector" added to tools by Hunter G.</div><div class="update-time">Jun 10, 2026 at 12:56 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"AMC SQL Generator" edited by manager</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#fff833;box-shadow:0 0 5px #fff83344;"></div><div class="update-body"><div class="update-text">New tag "SQL" created</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#41ff33;box-shadow:0 0 5px #41ff3344;"></div><div class="update-body"><div class="update-text">New tag "AMC" created</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"AMC SQL Generator" added to tools by Matan L.</div><div class="update-time">Jun 9, 2026 at 3:26 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#ff811a;box-shadow:0 0 5px #ff811a44;"></div><div class="update-body"><div class="update-text">Tag "Report Analyzers" color updated</div><div class="update-time">Jun 9, 2026 at 3:15 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Amazon Ads Bulk ASIN Operations" edited by manager</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Monthly Callouts Generator" edited by manager</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Daypart Analyzer" edited by manager</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#85e0ff;box-shadow:0 0 5px #85e0ff44;"></div><div class="update-body"><div class="update-text">New tag "App" created</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#ff5252;box-shadow:0 0 5px #ff525244;"></div><div class="update-body"><div class="update-text">New tag "Skill" created</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Amazon Ads Bulk ASIN Operations" added to tools by Hunter G.</div><div class="update-time">May 28, 2026 at 3:53 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Monthly Callouts Generator" edited by manager</div><div class="update-time">May 20, 2026 at 2:31 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c8c8c8;box-shadow:0 0 5px #c8c8c844;"></div><div class="update-body"><div class="update-text">"Daypart Analyzer" edited by manager</div><div class="update-time">May 20, 2026 at 2:31 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#6d38ff;box-shadow:0 0 5px #6d38ff44;"></div><div class="update-body"><div class="update-text">New tag "SB" created</div><div class="update-time">May 20, 2026 at 2:31 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#383fff;box-shadow:0 0 5px #383fff44;"></div><div class="update-body"><div class="update-text">New tag "SP" created</div><div class="update-time">May 20, 2026 at 2:30 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#ff38f8;box-shadow:0 0 5px #ff38f844;"></div><div class="update-body"><div class="update-text">New tag "DSP" created</div><div class="update-time">May 20, 2026 at 2:30 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#c3ff38;box-shadow:0 0 5px #c3ff3844;"></div><div class="update-body"><div class="update-text">New tag "PPC" created</div><div class="update-time">May 20, 2026 at 2:30 PM</div></div></div><div class="update-item"><div class="update-dot" style="background:#f87171;box-shadow:0 0 5px #f8717144;"></div><div class="update-body"><div class="update-text">"Search Term Report Analyzer" removed</div><div class="update-time">May 20, 2026 at 2:29 PM</div></div></div></div>
     </div>
 
     <!-- TAGS TAB -->
@@ -922,33 +998,33 @@
 
       <div class="form-group" style="margin-top:20px">
         <label class="form-label">GitHub Username</label>
-        <input type="text" class="form-input" id="gh-username" value="HunterG-vendo" autocomplete="off" style="opacity: 0.5;" data-keeper-lock-id="k-bm7ydvqix1n" readonly="true">
+        <input type="text" class="form-input" id="gh-username" value="HunterG-vendo" autocomplete="off" style="" data-keeper-lock-id="k-5cq7f5gpx6d">
       </div>
       <div class="form-group">
         <label class="form-label">Repository Name</label>
-        <input type="text" class="form-input" id="gh-repo" value="Amazon-Ads-Team-Tools" autocomplete="off" style="opacity: 0.5;" readonly="true">
+        <input type="text" class="form-input" id="gh-repo" value="Amazon-Ads-Team-Tools" autocomplete="off" style="">
       </div>
       <div class="form-group">
         <label class="form-label">File Path in Repo</label>
-        <input type="text" class="form-input" id="gh-filepath" value="index.html" autocomplete="off" style="opacity: 0.5;" readonly="true">
+        <input type="text" class="form-input" id="gh-filepath" value="index.html" autocomplete="off" style="">
         <p class="form-hint">Usually just <code>index.html</code>. If it's in a subfolder: <code>docs/index.html</code></p>
       </div>
       <div class="form-group">
         <label class="form-label">Personal Access Token</label>
         <div style="position:relative">
-          <input type="text" class="form-input" id="gh-token" placeholder="Contact Hunter G. for the token" autocomplete="off" style="padding-right: 70px; opacity: 0.5;" data-keeper-lock-id="k-twozo83hh7" readonly="true">
+          <input type="text" class="form-input" id="gh-token" placeholder="Contact Hunter G. for the token" autocomplete="off" style="padding-right: 70px;" data-keeper-lock-id="k-twozo83hh7">
           <button id="gh-token-toggle" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:11px;color:var(--text-dim);cursor:pointer;font-family:var(--sans);">Hide</button>
         </div>
         <p class="form-hint" style="color:rgba(200,200,200,0.7);"> Contact Hunter G. to get the access token before saving settings.</p>
       </div>
-      <div id="gh-settings-locked-bar" class="lock-bar" style="display: flex;">
+      <div id="gh-settings-locked-bar" class="lock-bar" style="display: none;">
         <div class="lock-bar-text"><span></span> Settings are locked. Unlock to edit.</div>
         <button class="unlock-btn" id="gh-unlock-btn">Unlock</button>
       </div>
-      <div id="gh-settings-form" class="settings-locked">
+      <div id="gh-settings-form" class="">
         <div class="form-actions">
-          <button class="btn btn-primary" id="gh-save-settings-btn" style="opacity: 0.45;" disabled="true">Save Settings</button>
-          <button class="btn btn-secondary" id="gh-clear-settings-btn" style="opacity: 0.45;" disabled="true">Clear</button>
+          <button class="btn btn-primary" id="gh-save-settings-btn" style="">Save Settings</button>
+          <button class="btn btn-secondary" id="gh-clear-settings-btn" style="">Clear</button>
         </div>
       </div>
       <div id="gh-settings-msg" style="margin-top:12px;font-size:12px;display:none"></div>
@@ -957,15 +1033,15 @@
         <div class="section-label">Change Manager Password</div>
         <div class="form-group">
           <label class="form-label">Current Password</label>
-          <input type="password" class="form-input" id="pw-current" placeholder="Current password" autocomplete="off" style="opacity: 0.5;" readonly="true" data-keeper-lock-id="k-4y5ka1ng7d7">
+          <input type="password" class="form-input" id="pw-current" placeholder="Current password" autocomplete="off" style="">
         </div>
         <div class="form-group">
           <label class="form-label">New Password</label>
-          <input type="password" class="form-input" id="pw-new" placeholder="New password" autocomplete="off" style="opacity: 0.5;" readonly="true" data-keeper-lock-id="k-i89987ds2ka">
+          <input type="password" class="form-input" id="pw-new" placeholder="New password" autocomplete="off" style="">
         </div>
         <div class="form-group">
           <label class="form-label">Confirm New Password</label>
-          <input type="password" class="form-input" id="pw-confirm" placeholder="Confirm new password" autocomplete="off" style="opacity: 0.5;" readonly="true">
+          <input type="password" class="form-input" id="pw-confirm" placeholder="Confirm new password" autocomplete="off" style="">
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" id="pw-change-btn">Change Password</button>
@@ -1186,7 +1262,7 @@
 ];
 
   //  STATE 
-  var STORE_VERSION = 'v_1783716667030'; // auto-updated on every publish
+  var STORE_VERSION = 'v_1783716313347'; // auto-updated on every publish
   var DEFAULT_PASSWORD = 'PLTFRM2026';
 
   // Force clear localStorage if ?reset=1 is in the URL
@@ -2624,6 +2700,22 @@
   document.getElementById('filter-toggle-btn').addEventListener('click', toggleFilter);
 
   // Manager header buttons
+  // Submit a tool modal
+  function openSubmitModal() {
+    document.getElementById('submit-modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSubmitModal() {
+    document.getElementById('submit-modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  on('open-submit-btn',       'click', openSubmitModal);
+  on('submit-modal-close',    'click', closeSubmitModal);
+  on('submit-modal-close-btn','click', closeSubmitModal);
+  document.getElementById('submit-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeSubmitModal();
+  });
+
   document.getElementById('open-manager-btn').addEventListener('click', openManager);
   document.getElementById('close-manager-btn').addEventListener('click', closeManager);
   document.getElementById('manager-overlay').addEventListener('click', function(e){ if (e.target===this) closeManager(); });
@@ -2840,6 +2932,7 @@
   document.getElementById('manager-overlay').classList.remove('open');
   document.getElementById('pw-gate').classList.remove('open');
   document.getElementById('skill-modal-overlay').classList.remove('open');
+  document.getElementById('submit-modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
   managerUnlocked = false;
   filterOpen = false;
@@ -2897,9 +2990,4 @@ input[data-keeper-lock-id="k-twozo83hh7"]:not(:hover) ~ keeper-lock#k-twozo83hh7
 input[data-keeper-lock-id="k-qih1mlssfje"]:hover ~ keeper-lock#k-qih1mlssfje {opacity: 1;}
 input[data-keeper-lock-id="k-qih1mlssfje"]:not(:hover) ~ keeper-lock#k-qih1mlssfje {animation-name: hide-lock; animation-duration: .5s;}
 </style><style>input[data-keeper-lock-id="k-qsy36c5hmwk"]:hover ~ keeper-lock#k-qsy36c5hmwk {opacity: 1;}
-input[data-keeper-lock-id="k-huxgum12vrs"]:hover ~ keeper-lock#k-huxgum12vrs {opacity: 1;}
-
-input[data-keeper-lock-id="k-bm7ydvqix1n"]:hover ~ keeper-lock#k-bm7ydvqix1n {opacity: 1;}
-input[data-keeper-lock-id="k-4y5ka1ng7d7"]:hover ~ keeper-lock#k-4y5ka1ng7d7 {opacity: 1;}
-input[data-keeper-lock-id="k-i89987ds2ka"]:hover ~ keeper-lock#k-i89987ds2ka {opacity: 1;}
 </style></body></html>
