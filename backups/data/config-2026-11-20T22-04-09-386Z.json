@@ -1,0 +1,442 @@
+{
+  "file": "config",
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-20T20:10:45.000Z",
+  "updatedBy": "Migration",
+  "tags": [
+    {
+      "name": "Report Analyzers",
+      "color": "#ff811a"
+    },
+    {
+      "name": "Reporting",
+      "color": "#4f9eff"
+    },
+    {
+      "name": "Bulk Optimizations",
+      "color": "#34d399"
+    },
+    {
+      "name": "PPC",
+      "color": "#c3ff38"
+    },
+    {
+      "name": "DSP",
+      "color": "#ff38f8"
+    },
+    {
+      "name": "SP",
+      "color": "#383fff"
+    },
+    {
+      "name": "SB",
+      "color": "#6d38ff"
+    },
+    {
+      "name": "AMC",
+      "color": "#41ff33"
+    },
+    {
+      "name": "SQL",
+      "color": "#fff833"
+    }
+  ],
+  "amcCategories": [
+    {
+      "name": "Advanced NTB Analysis",
+      "icon": "people-plus"
+    },
+    {
+      "name": "LTV Analysis",
+      "icon": "trend"
+    },
+    {
+      "name": "Path To Purchase Variations",
+      "icon": "path"
+    },
+    {
+      "name": "Other",
+      "icon": "list"
+    }
+  ],
+  "log": [
+    {
+      "id": "u1791496266626",
+      "time": "2026-10-08T21:51:06.626Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-removed",
+      "target": "legacy",
+      "text": "\"Monthly Callouts Generator\" removed"
+    },
+    {
+      "id": "u1789662786720",
+      "time": "2026-09-17T16:33:06.720Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"SQP MoM View\" added to tools by Ricky G."
+    },
+    {
+      "id": "u1789578368835",
+      "time": "2026-09-16T17:06:08.835Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Unified Reporting Monthly Callouts\" edited by manager"
+    },
+    {
+      "id": "u1788906483349",
+      "time": "2026-09-08T22:28:03.349Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Multi-Brand Performance\" edited by manager"
+    },
+    {
+      "id": "u1783787548495",
+      "time": "2026-07-11T16:32:28.495Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Daypart Analyzer\" moved to position 6"
+    },
+    {
+      "id": "u1783787546183",
+      "time": "2026-07-11T16:32:26.183Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Brand Leakage Detector\" moved to position 5"
+    },
+    {
+      "id": "u1783787496979",
+      "time": "2026-07-11T16:31:36.979Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Bulk Sheet Tool\" edited by manager"
+    },
+    {
+      "id": "u1783717108984",
+      "time": "2026-07-10T20:58:28.984Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"Brand Leakage Detector\" added to tools by Hunter G."
+    },
+    {
+      "id": "u1783717107024",
+      "time": "2026-07-10T20:58:27.024Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-removed",
+      "target": "legacy",
+      "text": "\"Brand Leakage Detector\" removed"
+    },
+    {
+      "id": "u1783717056174",
+      "time": "2026-07-10T20:57:36.174Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-removed",
+      "target": "legacy",
+      "text": "\"AMC SQL Generator\" removed"
+    },
+    {
+      "id": "u1783716197535",
+      "time": "2026-07-10T20:43:17.535Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-removed",
+      "target": "legacy",
+      "text": "\"Amazon Ads Bulk ASIN Operations\" removed"
+    },
+    {
+      "id": "u1783716194787",
+      "time": "2026-07-10T20:43:14.787Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Bulk Sheet Tool\" moved to position 4"
+    },
+    {
+      "id": "u1783716190035",
+      "time": "2026-07-10T20:43:10.035Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Bulk Sheet Tool\" moved to position 1"
+    },
+    {
+      "id": "u1783716152792",
+      "time": "2026-07-10T20:42:32.792Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"Bulk Sheet Tool\" added to tools by Matan L."
+    },
+    {
+      "id": "u1783716017970",
+      "time": "2026-07-10T20:40:17.970Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"2+ Purchase and Not in SNS\" moved to position 10"
+    },
+    {
+      "id": "u1783716007937",
+      "time": "2026-07-10T20:40:07.937Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"DSP Media Plan\" moved to position 2"
+    },
+    {
+      "id": "u1783716005971",
+      "time": "2026-07-10T20:40:05.971Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"WoW Dashboard\" moved to position 3"
+    },
+    {
+      "id": "u1783716002901",
+      "time": "2026-07-10T20:40:02.901Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Amazon Ads Bulk ASIN Operations\" moved to position 11"
+    },
+    {
+      "id": "u1783715993304",
+      "time": "2026-07-10T20:39:53.304Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Multi-Brand Performance\" moved to position 1"
+    },
+    {
+      "id": "u1783715990352",
+      "time": "2026-07-10T20:39:50.352Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-reordered",
+      "target": "legacy",
+      "text": "\"Daypart Analyzer\" moved to position 6"
+    },
+    {
+      "id": "u1783715154589",
+      "time": "2026-07-10T20:25:54.589Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-removed",
+      "target": "legacy",
+      "text": "\"test\" removed"
+    },
+    {
+      "id": "u1783715081671",
+      "time": "2026-07-10T20:24:41.671Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"test\" added to tools by test"
+    },
+    {
+      "id": "u1781134756833",
+      "time": "2026-06-10T23:39:16.833Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"2+ Purchase and Not in SNS\" added to tools by Matan L."
+    },
+    {
+      "id": "u1781114164113",
+      "time": "2026-06-10T17:56:04.113Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"Brand Leakage Detector\" added to tools by Hunter G."
+    },
+    {
+      "id": "u1781036805332",
+      "time": "2026-06-09T20:26:45.332Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"AMC SQL Generator\" edited by manager"
+    },
+    {
+      "id": "u1781036799297",
+      "time": "2026-06-09T20:26:39.297Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"SQL\" created"
+    },
+    {
+      "id": "u1781036777181",
+      "time": "2026-06-09T20:26:17.181Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"AMC\" created"
+    },
+    {
+      "id": "u1781036767465",
+      "time": "2026-06-09T20:26:07.465Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"AMC SQL Generator\" added to tools by Matan L."
+    },
+    {
+      "id": "u1781036137422",
+      "time": "2026-06-09T20:15:37.422Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-edited",
+      "target": "legacy",
+      "text": "Tag \"Report Analyzers\" color updated"
+    },
+    {
+      "id": "u1780001624175",
+      "time": "2026-05-28T20:53:44.175Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Amazon Ads Bulk ASIN Operations\" edited by manager"
+    },
+    {
+      "id": "u1780001621487",
+      "time": "2026-05-28T20:53:41.487Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Monthly Callouts Generator\" edited by manager"
+    },
+    {
+      "id": "u1780001619057",
+      "time": "2026-05-28T20:53:39.057Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Daypart Analyzer\" edited by manager"
+    },
+    {
+      "id": "u1780001612254",
+      "time": "2026-05-28T20:53:32.254Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"App\" created"
+    },
+    {
+      "id": "u1780001601437",
+      "time": "2026-05-28T20:53:21.437Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"Skill\" created"
+    },
+    {
+      "id": "u1780001585940",
+      "time": "2026-05-28T20:53:05.940Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-added",
+      "target": "legacy",
+      "text": "\"Amazon Ads Bulk ASIN Operations\" added to tools by Hunter G."
+    },
+    {
+      "id": "u1779305482367",
+      "time": "2026-05-20T19:31:22.367Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Monthly Callouts Generator\" edited by manager"
+    },
+    {
+      "id": "u1779305478467",
+      "time": "2026-05-20T19:31:18.467Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-edited",
+      "target": "legacy",
+      "text": "\"Daypart Analyzer\" edited by manager"
+    },
+    {
+      "id": "u1779305465314",
+      "time": "2026-05-20T19:31:05.314Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"SB\" created"
+    },
+    {
+      "id": "u1779305459029",
+      "time": "2026-05-20T19:30:59.029Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"SP\" created"
+    },
+    {
+      "id": "u1779305450698",
+      "time": "2026-05-20T19:30:50.698Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"DSP\" created"
+    },
+    {
+      "id": "u1779305444831",
+      "time": "2026-05-20T19:30:44.831Z",
+      "actor": "",
+      "device": "",
+      "action": "tag-added",
+      "target": "legacy",
+      "text": "New tag \"PPC\" created"
+    },
+    {
+      "id": "u1779305398449",
+      "time": "2026-05-20T19:29:58.449Z",
+      "actor": "",
+      "device": "",
+      "action": "tool-removed",
+      "target": "legacy",
+      "text": "\"Search Term Report Analyzer\" removed"
+    }
+  ]
+}
