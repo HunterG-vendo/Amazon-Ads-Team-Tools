@@ -1,0 +1,95 @@
+{
+  "file": "apps",
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-20T20:10:45.000Z",
+  "updatedBy": "Migration",
+  "items": [
+    {
+      "id": "t1783026537088",
+      "name": "Unified Reporting Monthly Callouts",
+      "url": "https://rickygrossman5-wq.github.io/Multi-Brand-Performance/",
+      "desc": "Upload a single unified report with all your brands selected to generate monthly callouts highlighting brand metrics and strategy. Includes a wasted spend miner to negate token terms from campaigns to prevent wasted spend.",
+      "author": "Ricky G.",
+      "tags": [
+        "Report Analyzers",
+        "Reporting",
+        "PPC",
+        "SP",
+        "SB"
+      ]
+    },
+    {
+      "id": "t1780436835470",
+      "name": "DSP Media Plan",
+      "url": "https://rickygrossman5-wq.github.io/DSP-Media-Plan/",
+      "desc": "A DSP media planning tool that predicts end-of-month spend for each line item and helps you allocate next month's budgets, then generates a ready-to-paste output for Amazon's AI ads chatbot to automatically update your projected spends.",
+      "author": "Ricky G.",
+      "tags": [
+        "Reporting",
+        "DSP"
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Daypart Analyzer",
+      "url": "https://hunterg-vendo.github.io/Daypart-Analyzer/",
+      "desc": "Analyze your Amazon Ads performance by hour and day of week to find the best bid adjustment windows and cut spend during low-converting time slots.",
+      "author": "Hunter G.",
+      "tags": [
+        "Report Analyzers",
+        "PPC",
+        "SP"
+      ]
+    },
+    {
+      "id": "t1780436791418",
+      "name": "WoW Dashboard",
+      "url": "https://rickygrossman5-wq.github.io/Advertising-Dashboard/",
+      "desc": "A week-over-week performance comparison dashboard that analyzes campaign, product, and search term data across four report types — campaign reports, advertised product reports, business reports, and search query performance — highlighting WoW or MoM changes across revenue, spend, ROAS, CVR, and conversion metrics at the campaign, portfolio, and ASIN level.",
+      "author": "Ricky G.",
+      "tags": [
+        "Reporting",
+        "PPC",
+        "SP",
+        "SB"
+      ]
+    },
+    {
+      "id": "t1780436435540",
+      "name": "Wasted Spend Miner",
+      "url": "https://rickygrossman5-wq.github.io/Wasted-Spend/",
+      "desc": "A negative mining tool that analyzes your search term reports to surface wasted spend, score and rank negation candidates across auto, phrase, and broad campaigns, and identify high-value converting search terms you aren't explicitly targeting.",
+      "author": "Ricky G.",
+      "tags": [
+        "PPC",
+        "SP",
+        "SB"
+      ]
+    },
+    {
+      "id": "t1781289128097",
+      "name": "CAC/Movement MoM",
+      "url": "https://rickygrossman5-wq.github.io/CAC-MoM-Analyzer/",
+      "desc": "A browser-based analytics tool for Amazon new-to-brand (NTB) campaign data: upload two months of AMC campaign reports to see month-over-month movement in spend, CAC, NTB sales, and ROAS — broken out by channel (PPC/DSP/Others) and category — plus a Sponsored Products deep-dive page that drills from each campaign down to its individual targets.",
+      "author": "Jamie G.",
+      "tags": [
+        "Reporting",
+        "PPC",
+        "SP"
+      ]
+    },
+    {
+      "id": "t1789662786714",
+      "name": "SQP MoM View",
+      "url": "https://rickygrossman5-wq.github.io/SQP-MoM-View/",
+      "desc": "View changes in impression, click, and purchase share against changing search volume across a month-over-month dashboard. Upload your own brands with historical SQP data to access and save the changes by pushing them to GitHub.",
+      "author": "Ricky G.",
+      "tags": [
+        "Report Analyzers",
+        "Reporting",
+        "PPC"
+      ]
+    }
+  ],
+  "log": []
+}

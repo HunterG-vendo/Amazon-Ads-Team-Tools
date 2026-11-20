@@ -1,0 +1,2127 @@
+{
+  "file": "amc-queries",
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-20T20:10:45.000Z",
+  "updatedBy": "Migration",
+  "items": [
+    {
+      "id": "ntb-asin-day",
+      "title": "NTB by ASIN, by Day",
+      "type": "Advanced NTB Analysis",
+      "summary": "Daily new-to-brand purchasers, purchases, units and sales for every ASIN, ranked by NTB purchasers each day. Template for any brand, with an optional ASIN filter.",
+      "description": "Counts new-to-brand (NTB) customers, purchases, units and sales for every ASIN with purchases, one row per day and ASIN, and ranks ASINs within each day by NTB purchasers.\n\nIt first builds one row per day, ASIN, customer and NTB flag from purchase events in `conversions_all`, so customers are counted once (distinct `user_id`) before the metrics roll up. `ntb_pct_of_purchasers` is the share of that ASIN's customers who were new to the brand.\n\nThe template header has placeholders for the brand and instance name, and an optional `asin_filter` list. Leave the filter commented out to return every ASIN, or switch it on to report only a product line, a launch set or a client's hero ASINs.\n\nDays are UTC (`event_date_utc`), so a day's totals can differ slightly from Pacific-time console reports. Daily rows sit closer to AMC's aggregation threshold than monthly rows, so expect more gaps on small ASINs.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block so the saved query is easy to find. These are comments and don't change results.",
+        "Open the brand's own AMC instance. There is nothing brand-specific to edit beyond the optional filter.",
+        "Set the date range in the AMC UI. Keep it to the window you're studying (a promo week, a launch month); long daily ranges produce very large files.",
+        "Optional ASIN filter: in the `asin_filter` CTE, replace `B000000001` and `B000000002` with the ASINs you want, one `('ASIN')` per line, separated by commas.",
+        "Then uncomment the line `-- AND tracked_item IN (SELECT asin FROM asin_filter)` in `purchase_base` by deleting the leading `--`. Leave it commented to return every ASIN.",
+        "Run, export, and sort in Excel (AMC has no ORDER BY in output)."
+      ],
+      "requirements": [
+        "Paid feature: Amazon Insights. `conversions_all` is listed under Subscriptions in the AMC query editor, not with the standard Amazon Ads tables. Amazon Insights is the subscription that covers non-ad-exposed conversion events. Check Paid features on the brand's instance before running.",
+        "Table: `conversions_all`. Includes ad-attributed and non-ad-attributed purchases of ASINs tracked to the brand's DSP or Sponsored Ads campaigns, and carries Amazon's `new_to_brand` flag.",
+        "Instance: Run it in the brand's own AMC instance. NTB is judged against that advertiser's brand, so results can't be combined across instances.",
+        "Aggregation threshold: AMC drops rows below its minimum distinct-user count, so slow-selling ASINs may be missing.",
+        "ASIN list: Only needed if you switch on the optional filter. Use child ASINs as they appear in `tracked_item`.",
+        "Date range: Up to 13 months of history. Keep daily pulls short for a manageable file."
+      ],
+      "useCases": [
+        "Measure tentpole NTB lift: Compare NTB purchasers per ASIN on Prime Day or Big Deal Days against the two weeks before to see which ASINs actually brought in new customers.",
+        "Read a promo or coupon test: Check whether NTB % rose on the days a coupon or Lightning Deal ran on a specific ASIN.",
+        "Track a launch: Filter to the new ASINs and follow their daily NTB purchasers for the first 30 days to judge whether awareness spend is converting new customers.",
+        "Find gateway ASINs: ASINs that hold the top NTB rank day after day are candidates to feature in Sponsored Brands and DSP prospecting."
+      ],
+      "example": {
+        "columns": [
+          "event_day",
+          "asin",
+          "total_purchasers",
+          "ntb_purchasers",
+          "total_purchases",
+          "ntb_purchases",
+          "ntb_units_sold",
+          "ntb_sales",
+          "ntb_pct_of_purchasers",
+          "ntb_rank"
+        ],
+        "rows": [
+          [
+            "2026-07-08",
+            "B0EXAMPL01",
+            "412",
+            "288",
+            "455",
+            "312",
+            "340",
+            "10186.60",
+            "69.90",
+            "1"
+          ],
+          [
+            "2026-07-08",
+            "B0EXAMPL02",
+            "305",
+            "171",
+            "331",
+            "182",
+            "197",
+            "5903.03",
+            "56.07",
+            "2"
+          ],
+          [
+            "2026-07-08",
+            "B0EXAMPL03",
+            "190",
+            "133",
+            "204",
+            "140",
+            "151",
+            "4524.49",
+            "70.00",
+            "3"
+          ],
+          [
+            "2026-07-09",
+            "B0EXAMPL01",
+            "351",
+            "230",
+            "380",
+            "246",
+            "268",
+            "8029.32",
+            "65.53",
+            "1"
+          ],
+          [
+            "2026-07-09",
+            "B0EXAMPL03",
+            "210",
+            "152",
+            "222",
+            "160",
+            "171",
+            "5123.16",
+            "72.38",
+            "2"
+          ],
+          [
+            "2026-07-09",
+            "B0EXAMPL02",
+            "260",
+            "139",
+            "279",
+            "148",
+            "160",
+            "4793.60",
+            "53.46",
+            "3"
+          ]
+        ],
+        "note": "Illustrative values, not client data. AMC returns rows unsorted; sorted here for readability."
+      },
+      "tags": [
+        "conversions_all",
+        "Paid feature",
+        "Daily",
+        "ASIN filter"
+      ],
+      "sql": "-- =====================================================================\n-- NTB BY ASIN, BY DAY  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. The query reads that advertiser's\n--      conversions_all data, so there is nothing brand-specific to edit.\n--   2. Set the date range in the AMC UI. Keep daily pulls short (a promo\n--      week or one month); long daily ranges produce very large files.\n--   3. OPTIONAL: to limit results to specific ASINs, edit the asin_filter CTE\n--      and uncomment the two lines marked \"OPTIONAL ASIN FILTER\".\n--      Leave them commented to return every ASIN with purchases.\n--   4. Run. Sort and aggregate in Excel afterward (AMC has no ORDER BY).\n--\n-- OUTPUT (one row per day x ASIN)\n--   total_purchasers / ntb_purchasers    distinct customers\n--   total_purchases  / ntb_purchases     conversion counts\n--   ntb_units_sold, ntb_sales            NTB units and product sales ($)\n--   ntb_pct_of_purchasers                NTB share of that ASIN's purchasers\n--   ntb_rank                             rank by ntb_purchasers within the day\n--\n-- NOTES\n--   * \"New to brand\" uses Amazon's own NTB flag for the advertiser behind\n--     this instance, so definitions are consistent across brands.\n--   * AMC drops rows that fall below its minimum-user threshold. Smaller\n--     brands or slow ASINs will show fewer rows than expected.\n--   * ntb_purchasers is distinct per day, so summing it across days\n--     double-counts customers who were NTB on more than one day.\n--   * Days are UTC (event_date_utc), so totals can differ slightly from\n--     Pacific-time console reports.\n-- =====================================================================\n\nWITH\n  -- OPTIONAL ASIN FILTER: replace the examples with the brand's ASINs\n  asin_filter (asin) AS (\n    VALUES\n      ('B000000001'),\n      ('B000000002')\n  ),\n\n  -- One row per day x ASIN x customer x NTB flag\n  purchase_base AS (\n    SELECT\n      DATE_TRUNC ('DAY', event_date_utc) AS event_day,\n      tracked_item AS asin,\n      user_id,\n      new_to_brand,\n      SUM(conversions) AS conversions,\n      SUM(total_units_sold) AS units_sold,\n      SUM(total_product_sales) AS product_sales\n    FROM\n      conversions_all\n    WHERE\n      conversions > 0\n      AND NOT user_id IS NULL\n      AND event_category = 'purchase'\n      -- OPTIONAL ASIN FILTER: uncomment the next line to use the list above\n      -- AND tracked_item IN (SELECT asin FROM asin_filter)\n    GROUP BY\n      DATE_TRUNC ('DAY', event_date_utc),\n      tracked_item,\n      user_id,\n      new_to_brand\n  ),\n\n  -- Roll up to day x ASIN\n  asin_metrics AS (\n    SELECT\n      event_day,\n      asin,\n      COUNT(DISTINCT user_id) AS total_purchasers,\n      COUNT(\n        DISTINCT CASE\n          WHEN new_to_brand = TRUE THEN user_id\n        END\n      ) AS ntb_purchasers,\n      SUM(conversions) AS total_purchases,\n      SUM(\n        CASE\n          WHEN new_to_brand = TRUE THEN conversions\n          ELSE 0\n        END\n      ) AS ntb_purchases,\n      SUM(\n        CASE\n          WHEN new_to_brand = TRUE THEN units_sold\n          ELSE 0\n        END\n      ) AS ntb_units_sold,\n      SUM(\n        CASE\n          WHEN new_to_brand = TRUE THEN product_sales\n          ELSE 0\n        END\n      ) AS ntb_sales\n    FROM\n      purchase_base\n    GROUP BY\n      event_day,\n      asin\n  ),\n\n  -- Rank ASINs within each day by NTB purchasers\n  ranked AS (\n    SELECT\n      event_day,\n      asin,\n      total_purchasers,\n      ntb_purchasers,\n      total_purchases,\n      ntb_purchases,\n      ntb_units_sold,\n      ROUND(ntb_sales, 2) AS ntb_sales,\n      ROUND(\n        CAST(ntb_purchasers AS DOUBLE) / NULLIF(total_purchasers, 0) * 100,\n        2\n      ) AS ntb_pct_of_purchasers,\n      RANK() OVER (\n        PARTITION BY\n          event_day\n        ORDER BY\n          ntb_purchasers DESC\n      ) AS ntb_rank\n    FROM\n      asin_metrics\n  )\n\nSELECT\n  event_day,\n  asin,\n  total_purchasers,\n  ntb_purchasers,\n  total_purchases,\n  ntb_purchases,\n  ntb_units_sold,\n  ntb_sales,\n  ntb_pct_of_purchasers,\n  ntb_rank\nFROM\n  ranked\n",
+      "createdAt": "2026-10-22T21:40:00.000Z",
+      "updatedAt": "2026-10-22T21:40:00.000Z",
+      "viz": {
+        "defaults": {
+          "group": "asin",
+          "measure": "ntb_purchasers",
+          "x": "event_day",
+          "chart": "line",
+          "top": "6",
+          "dir": "desc"
+        },
+        "derived": [
+          {
+            "name": "ntb_pct",
+            "label": "NTB % of purchasers",
+            "ratio": [
+              "ntb_purchasers",
+              "total_purchasers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          }
+        ],
+        "hide": [
+          "ntb_pct_of_purchasers"
+        ],
+        "kpis": [
+          {
+            "label": "NTB purchasers",
+            "sum": "ntb_purchasers",
+            "fmt": "int",
+            "note": "Summed across days"
+          },
+          {
+            "label": "NTB sales",
+            "sum": "ntb_sales",
+            "fmt": "money"
+          },
+          {
+            "label": "NTB % of purchasers",
+            "ratio": [
+              "ntb_purchasers",
+              "total_purchasers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "label": "ASINs",
+            "distinct": "asin"
+          }
+        ]
+      },
+      "author": ""
+    },
+    {
+      "id": "ntb-asin-month",
+      "title": "NTB by ASIN, by Month",
+      "type": "Advanced NTB Analysis",
+      "summary": "Monthly new-to-brand purchasers, purchases, units and sales for every ASIN, ranked by NTB purchasers each month. Template for any brand, with an optional ASIN filter.",
+      "description": "Counts new-to-brand (NTB) customers, purchases, units and sales for every ASIN with purchases, one row per month and ASIN, and ranks ASINs within each month by NTB purchasers.\n\nIt first builds one row per month, ASIN, customer and NTB flag from purchase events in `conversions_all`, so customers are counted once (distinct `user_id`) before the metrics roll up. `ntb_pct_of_purchasers` is the share of that ASIN's customers who were new to the brand.\n\nThe template header has placeholders for the brand and instance name, and an optional `asin_filter` list. Leave the filter commented out to return every ASIN, or switch it on to report only a product line, a launch set or a client's hero ASINs.\n\n`ntb_purchasers` is distinct within each month, so adding months together double-counts customers who were NTB in more than one month.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block so the saved query is easy to find. These are comments and don't change results.",
+        "Open the brand's own AMC instance. There is nothing brand-specific to edit beyond the optional filter.",
+        "Set the date range in the AMC UI to whole calendar months (for example Aug 1 to Sep 30) so the first and last months aren't partial. 13 months is the usual maximum.",
+        "Optional ASIN filter: in the `asin_filter` CTE, replace `B000000001` and `B000000002` with the ASINs you want, one `('ASIN')` per line, separated by commas.",
+        "Then uncomment the line `-- AND tracked_item IN (SELECT asin FROM asin_filter)` in `purchase_base` by deleting the leading `--`. Leave it commented to return every ASIN.",
+        "Run, export, and sort in Excel (AMC has no ORDER BY in output)."
+      ],
+      "requirements": [
+        "Paid feature: Amazon Insights. `conversions_all` is listed under Subscriptions in the AMC query editor, not with the standard Amazon Ads tables. Amazon Insights is the subscription that covers non-ad-exposed conversion events. Check Paid features on the brand's instance before running.",
+        "Table: `conversions_all`. Includes ad-attributed and non-ad-attributed purchases of ASINs tracked to the brand's DSP or Sponsored Ads campaigns, and carries Amazon's `new_to_brand` flag.",
+        "Instance: Run it in the brand's own AMC instance. NTB is judged against that advertiser's brand, so results can't be combined across instances.",
+        "Aggregation threshold: AMC drops rows below its minimum distinct-user count, so slow-selling ASINs may be missing.",
+        "ASIN list: Only needed if you switch on the optional filter. Use child ASINs as they appear in `tracked_item`.",
+        "Date range: Up to 13 months. Use full calendar months for clean rows."
+      ],
+      "useCases": [
+        "Monthly recap callouts: Name the ASINs that drove the most new customers this month and how their NTB % moved versus last month.",
+        "Budget allocation: Shift prospecting spend toward ASINs with high NTB % and growing NTB purchasers; pull back on ASINs that mostly sell to repeat buyers.",
+        "Product-line reporting: Filter to one line (a flavor family, a new collection) to report its NTB contribution without wading through the full catalog.",
+        "Seasonality: Run 13 months to see when each ASIN acquires new customers, and plan awareness flights ahead of those months."
+      ],
+      "example": {
+        "columns": [
+          "event_month",
+          "asin",
+          "total_purchasers",
+          "ntb_purchasers",
+          "total_purchases",
+          "ntb_purchases",
+          "ntb_units_sold",
+          "ntb_sales",
+          "ntb_pct_of_purchasers",
+          "ntb_rank"
+        ],
+        "rows": [
+          [
+            "2026-08-01",
+            "B0EXAMPL01",
+            "4820",
+            "3110",
+            "5402",
+            "3388",
+            "3702",
+            "110912.18",
+            "64.52",
+            "1"
+          ],
+          [
+            "2026-08-01",
+            "B0EXAMPL02",
+            "3905",
+            "2044",
+            "4310",
+            "2198",
+            "2401",
+            "71933.98",
+            "52.34",
+            "2"
+          ],
+          [
+            "2026-08-01",
+            "B0EXAMPL03",
+            "1640",
+            "1152",
+            "1733",
+            "1201",
+            "1290",
+            "38648.40",
+            "70.24",
+            "3"
+          ],
+          [
+            "2026-09-01",
+            "B0EXAMPL01",
+            "4410",
+            "2690",
+            "4925",
+            "2903",
+            "3170",
+            "94973.20",
+            "61.00",
+            "1"
+          ],
+          [
+            "2026-09-01",
+            "B0EXAMPL03",
+            "1980",
+            "1401",
+            "2077",
+            "1455",
+            "1560",
+            "46737.60",
+            "70.76",
+            "2"
+          ],
+          [
+            "2026-09-01",
+            "B0EXAMPL02",
+            "3360",
+            "1688",
+            "3702",
+            "1802",
+            "1955",
+            "58571.80",
+            "50.24",
+            "3"
+          ]
+        ],
+        "note": "Illustrative values, not client data. AMC returns rows unsorted; sorted here for readability."
+      },
+      "tags": [
+        "conversions_all",
+        "Paid feature",
+        "Monthly",
+        "ASIN filter"
+      ],
+      "sql": "-- =====================================================================\n-- NTB BY ASIN, BY MONTH  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. The query reads that advertiser's\n--      conversions_all data, so there is nothing brand-specific to edit.\n--   2. Set the date range in the AMC UI (a full calendar-month range gives\n--      clean monthly rows; 13 months is the usual maximum).\n--   3. OPTIONAL: to limit results to specific ASINs, edit the asin_filter CTE\n--      and uncomment the two lines marked \"OPTIONAL ASIN FILTER\".\n--      Leave them commented to return every ASIN with purchases.\n--   4. Run. Sort and aggregate in Excel afterward (AMC has no ORDER BY).\n--\n-- OUTPUT (one row per month x ASIN)\n--   total_purchasers / ntb_purchasers    distinct customers\n--   total_purchases  / ntb_purchases     conversion counts\n--   ntb_units_sold, ntb_sales            NTB units and product sales ($)\n--   ntb_pct_of_purchasers                NTB share of that ASIN's purchasers\n--   ntb_rank                             rank by ntb_purchasers within the month\n--\n-- NOTES\n--   * \"New to brand\" uses Amazon's own NTB flag for the advertiser behind\n--     this instance, so definitions are consistent across brands.\n--   * AMC drops rows that fall below its minimum-user threshold. Smaller\n--     brands or slow ASINs will show fewer rows than expected.\n--   * ntb_purchasers is distinct per month, so summing it across months\n--     double-counts customers who were NTB in more than one month.\n-- =====================================================================\n\nWITH\n  -- OPTIONAL ASIN FILTER: replace the examples with the brand's ASINs\n  asin_filter (asin) AS (\n    VALUES\n      ('B000000001'),\n      ('B000000002')\n  ),\n\n  -- One row per month x ASIN x customer x NTB flag\n  purchase_base AS (\n    SELECT\n      DATE_TRUNC ('MONTH', event_date_utc) AS event_month,\n      tracked_item AS asin,\n      user_id,\n      new_to_brand,\n      SUM(conversions) AS conversions,\n      SUM(total_units_sold) AS units_sold,\n      SUM(total_product_sales) AS product_sales\n    FROM\n      conversions_all\n    WHERE\n      conversions > 0\n      AND NOT user_id IS NULL\n      AND event_category = 'purchase'\n      -- OPTIONAL ASIN FILTER: uncomment the next line to use the list above\n      -- AND tracked_item IN (SELECT asin FROM asin_filter)\n    GROUP BY\n      DATE_TRUNC ('MONTH', event_date_utc),\n      tracked_item,\n      user_id,\n      new_to_brand\n  ),\n\n  -- Roll up to month x ASIN\n  asin_metrics AS (\n    SELECT\n      event_month,\n      asin,\n      COUNT(DISTINCT user_id) AS total_purchasers,\n      COUNT(\n        DISTINCT CASE\n          WHEN new_to_brand = TRUE THEN user_id\n        END\n      ) AS ntb_purchasers,\n      SUM(conversions) AS total_purchases,\n      SUM(\n        CASE\n          WHEN new_to_brand = TRUE THEN conversions\n          ELSE 0\n        END\n      ) AS ntb_purchases,\n      SUM(\n        CASE\n          WHEN new_to_brand = TRUE THEN units_sold\n          ELSE 0\n        END\n      ) AS ntb_units_sold,\n      SUM(\n        CASE\n          WHEN new_to_brand = TRUE THEN product_sales\n          ELSE 0\n        END\n      ) AS ntb_sales\n    FROM\n      purchase_base\n    GROUP BY\n      event_month,\n      asin\n  ),\n\n  -- Rank ASINs within each month by NTB purchasers\n  ranked AS (\n    SELECT\n      event_month,\n      asin,\n      total_purchasers,\n      ntb_purchasers,\n      total_purchases,\n      ntb_purchases,\n      ntb_units_sold,\n      ROUND(ntb_sales, 2) AS ntb_sales,\n      ROUND(\n        CAST(ntb_purchasers AS DOUBLE) / NULLIF(total_purchasers, 0) * 100,\n        2\n      ) AS ntb_pct_of_purchasers,\n      RANK() OVER (\n        PARTITION BY\n          event_month\n        ORDER BY\n          ntb_purchasers DESC\n      ) AS ntb_rank\n    FROM\n      asin_metrics\n  )\n\nSELECT\n  event_month,\n  asin,\n  total_purchasers,\n  ntb_purchasers,\n  total_purchases,\n  ntb_purchases,\n  ntb_units_sold,\n  ntb_sales,\n  ntb_pct_of_purchasers,\n  ntb_rank\nFROM\n  ranked\n",
+      "createdAt": "2026-10-22T21:41:00.000Z",
+      "updatedAt": "2026-10-22T21:41:00.000Z",
+      "viz": {
+        "defaults": {
+          "group": "asin",
+          "measure": "ntb_purchasers",
+          "x": "event_month",
+          "chart": "line",
+          "top": "6",
+          "dir": "desc"
+        },
+        "derived": [
+          {
+            "name": "ntb_pct",
+            "label": "NTB % of purchasers",
+            "ratio": [
+              "ntb_purchasers",
+              "total_purchasers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          }
+        ],
+        "hide": [
+          "ntb_pct_of_purchasers"
+        ],
+        "kpis": [
+          {
+            "label": "NTB purchasers",
+            "sum": "ntb_purchasers",
+            "fmt": "int",
+            "note": "Summed across months"
+          },
+          {
+            "label": "NTB sales",
+            "sum": "ntb_sales",
+            "fmt": "money"
+          },
+          {
+            "label": "NTB % of purchasers",
+            "ratio": [
+              "ntb_purchasers",
+              "total_purchasers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "label": "ASINs",
+            "distinct": "asin"
+          }
+        ]
+      },
+      "author": ""
+    },
+    {
+      "id": "ntb-campaign",
+      "title": "NTB by Campaign",
+      "type": "Advanced NTB Analysis",
+      "summary": "Spend, reach, and new-to-brand vs. repeat purchases and sales for every Sponsored Ads and DSP campaign. The input for the CAC MoM Movement tool.",
+      "description": "Returns one row per campaign across Sponsored Products, Sponsored Brands, Sponsored Display and DSP, with spend, unique users reached, NTB purchases, non-NTB purchases and sales, and the NTB share of each.\n\nIt unions three sources: conversions from `amazon_attributed_events_by_conversion_time` (matches console and STR numbers), DSP spend and reach from `dsp_impressions`, and Sponsored Ads spend and reach from `sponsored_ads_traffic`, then rolls them up to the campaign. NTB purchases are halo (`new_to_brand_total_purchases`), so CAC is `total_cost / new_to_brand_purchases`.\n\nOptional DSP campaign ID and Sponsored Ads campaign name lists let you narrow it to specific campaigns. Leave them off for a full pull.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block. These are comments and don't change results.",
+        "Open the brand's own AMC instance. With the filters off it returns every campaign, so nothing else needs editing.",
+        "Set the date range in the AMC UI. For the CAC MoM Movement tool, run it twice: once for the previous month and once for the current month.",
+        "Optional DSP filter: replace `1111111111111` and `2222222222222` in `dsp_campaigns` with DSP campaign IDs (numbers, no quotes).",
+        "Optional Sponsored Ads filter: replace the example names in `sa_campaigns` with exact campaign names as AMC stores them, e.g. `('PLTFRM | Whey | Generic KW | NB | SP')`. Double any apostrophe: `'Brand''s Campaign'`.",
+        "If you use either filter, uncomment all three lines marked `OPTIONAL CAMPAIGN FILTER` (one per SELECT) by deleting the leading `--`.",
+        "Run, export, and calculate CAC in Excel as `total_cost / new_to_brand_purchases`, or drop both exports into the CAC MoM Movement tool."
+      ],
+      "requirements": [
+        "Paid features: None. Runs on a standard AMC instance.",
+        "Tables: `amazon_attributed_events_by_conversion_time`, `dsp_impressions`, `sponsored_ads_traffic` (all standard).",
+        "Campaign names: If you use the Sponsored Ads filter, names must match AMC character for character. Run `SELECT campaign FROM sponsored_ads_traffic GROUP BY campaign` to see the exact strings.",
+        "Reach: `unique_users_reached` is summed across months, so multi-month ranges over-count reach. Run one month at a time for clean reach.",
+        "Units: Spend is converted to dollars in the query (DSP millicents ÷ 100,000; Sponsored Ads microcents ÷ 100,000,000)."
+      ],
+      "useCases": [
+        "Monthly CAC movement: Run for two months and compare CAC, NTB % and NTB sales by campaign to explain why blended CAC moved.",
+        "Pause and lean-in calls: Campaigns with rising spend and flat NTB purchases are pause or bid-down candidates; low-CAC campaigns with headroom get more budget.",
+        "Branded vs. non-branded: Compare NTB % on branded campaigns (mostly repeat buyers) against non-branded and competitor campaigns to show where new customers come from.",
+        "DSP vs. Sponsored Ads: Put DSP prospecting CAC next to Sponsored Ads CAC to defend or adjust the channel split."
+      ],
+      "example": {
+        "columns": [
+          "advertiser_id",
+          "advertiser",
+          "campaign_id",
+          "campaign",
+          "unique_users_reached",
+          "total_cost",
+          "new_to_brand_purchases",
+          "non_new_to_brand_purchases",
+          "new_to_brand_purchases_percentage",
+          "new_to_brand_product_sales",
+          "non_new_to_brand_product_sales",
+          "new_to_brand_product_sales_percentage"
+        ],
+        "rows": [
+          [
+            "Sponsored_ads",
+            "Example Brand",
+            "312845100000001",
+            "PLTFRM | Whey | Generic KW | NB | SP",
+            "48210",
+            "6420.55",
+            "412",
+            "288",
+            "58.86",
+            "15873.20",
+            "11450.80",
+            "58.09"
+          ],
+          [
+            "Sponsored_ads",
+            "Example Brand",
+            "312845100000002",
+            "PLTFRM | Whey | Branded KW | B | SP",
+            "22975",
+            "1890.10",
+            "96",
+            "611",
+            "13.58",
+            "3702.40",
+            "24310.75",
+            "13.22"
+          ],
+          [
+            "5839201746",
+            "Example Brand",
+            "7710045523001",
+            "Q4 Prospecting | Conversion | DSP",
+            "815400",
+            "9875.00",
+            "377",
+            "142",
+            "72.64",
+            "13950.30",
+            "5215.60",
+            "72.79"
+          ]
+        ],
+        "note": "Illustrative values and campaign names, not client data."
+      },
+      "tags": [
+        "Sponsored Ads",
+        "DSP",
+        "No paid features",
+        "CAC",
+        "Campaign filter"
+      ],
+      "sql": "-- =====================================================================\n-- NTB BY CAMPAIGN  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. With the filters left off, the\n--      query returns every Sponsored Ads and DSP campaign, so there is\n--      nothing brand-specific to edit.\n--   2. Set the date range in the AMC UI. For a MoM comparison, run it\n--      twice: once for the previous month, once for the current month.\n--   3. OPTIONAL campaign filter:\n--        a. DSP: replace the example IDs in dsp_campaigns with the DSP\n--           campaign IDs you want (numbers, no quotes).\n--        b. Sponsored Ads: replace the example names in sa_campaigns with\n--           the exact campaign names as AMC stores them. Double any\n--           apostrophe inside a name ('Brand''s Campaign').\n--        c. Uncomment the three lines marked \"OPTIONAL CAMPAIGN FILTER\"\n--           (one in each SELECT). Leave all three commented to return\n--           every campaign.\n--   4. Run. Export, then calculate CAC in Excel as\n--      total_cost / new_to_brand_purchases.\n--\n-- OUTPUT (one row per campaign)\n--   unique_users_reached               users reached (summed across months)\n--   total_cost                         spend in dollars ($)\n--   new_to_brand_purchases             NTB purchases (halo: total, not\n--                                      advertised-ASIN only)\n--   non_new_to_brand_purchases         repeat-customer purchases\n--   new_to_brand_purchases_percentage  NTB share of purchases\n--   new_to_brand_product_sales         NTB sales ($), plus non-NTB and %\n--\n-- NOTES\n--   * Conversions come from amazon_attributed_events_by_conversion_time,\n--     which lines up with console and STR numbers.\n--   * advertiser_id is 'Sponsored_ads' for SP / SB / SD rows and the DSP\n--     advertiser ID for DSP rows.\n--   * unique_users_reached is summed across months, so a multi-month\n--     range over-counts people reached in more than one month.\n-- =====================================================================\n\nWITH dsp_campaigns (campaign_id) AS (\nVALUES\n-- OPTIONAL CAMPAIGN FILTER: replace with the DSP campaign IDs to keep\n(1111111111111),\n(2222222222222)\n),\nsa_campaigns (campaign) AS (\nVALUES\n-- OPTIONAL CAMPAIGN FILTER: replace with the Sponsored Ads campaign names to keep\n('SP Campaign 1'),\n('SP Campaign 2'),\n('SD Campaign 1'),\n('SD Campaign 2'),\n('SB Campaign 1'),\n('SB Campaign 2')\n),\n\naggregated as (\n-- Conversions (NTB and repeat) by campaign and month\nSELECT\n      CASE WHEN ad_product_type is not null THEN 'Sponsored_ads'  else advertiser_id\n  end\n  as advertiser_id,\n  advertiser,\n  campaign_id_string as campaign_id,\n  campaign,\n       CASE\n         WHEN traffic_event_subtype = 'AD_IMP' THEN EXTRACT(month FROM impression_date)\n         WHEN traffic_event_subtype = 'AD_CLICK' THEN EXTRACT(month FROM click_date)\n        end as traffic_month,\n  0 AS total_cost,\n  0 AS unique_users_reached,\n  SUM(new_to_brand_total_purchases) AS new_to_brand_purchases,\n  SUM(total_purchases) - SUM(new_to_brand_total_purchases) AS non_new_to_brand_purchases,\n  (SUM(new_to_brand_total_purchases) / SUM(total_purchases)) * 100 AS new_to_brand_purchases_percentage,\n  SUM(new_to_brand_total_product_sales) AS new_to_brand_product_sales,\n SUM(total_product_sales) - SUM(new_to_brand_total_product_sales) AS non_new_to_brand_product_sales,\n  (SUM(new_to_brand_total_product_sales) / SUM(total_product_sales)) * 100 AS new_to_brand_product_sales_percentage\nFROM\n  amazon_attributed_events_by_conversion_time\nWHERE\n user_id IS NOT NULL\n -- OPTIONAL CAMPAIGN FILTER: uncomment the next line to apply the lists above\n --AND (campaign_id IN (SELECT campaign_id FROM dsp_campaigns) OR campaign IN (SELECT campaign FROM sa_campaigns))\nGROUP BY\n advertiser_id,\n  advertiser,\n  campaign_id,\n  campaign,\n  traffic_month\nUNION ALL\n-- DSP spend and reach\nSELECT\n  advertiser_id,\n  advertiser,\n  campaign_id,\n  campaign,\n  EXTRACT(month FROM impression_date) as traffic_month,\n -- total_cost is reported in millicents. Divide by 100,000 to get dollars.\n  SUM(total_cost / 100000) AS total_cost,\n  COUNT(DISTINCT user_id) AS unique_users_reached,\n  0 AS new_to_brand_purchases,\n 0 AS non_new_to_brand_purchases,\n  0 AS new_to_brand_purchases_percentage,\n  0 AS new_to_brand_product_sales,\n  0 AS non_new_to_brand_product_sales,\n  0 AS new_to_brand_product_sales_percentage\nFROM\n  dsp_impressions\nWHERE\n  user_id IS NOT NULL\n -- OPTIONAL CAMPAIGN FILTER: uncomment the next line to apply the lists above\n --AND (campaign_id IN (SELECT campaign_id FROM dsp_campaigns) OR campaign IN (SELECT campaign FROM sa_campaigns))\nGROUP BY\n  advertiser_id,\n  advertiser,\n  campaign_id,\n  campaign,\n  traffic_month\nUNION ALL\n-- Sponsored Ads spend and reach\nSELECT\n   'Sponsored_ads'  as advertiser_id ,\n  advertiser,\n  campaign_id_string AS campaign_id,\n  campaign,\n  EXTRACT(month FROM event_date) as traffic_month,\n -- spend is reported in microcents. Divide by 100,000,000 to get dollars.\n  SUM(spend / 100000000) AS total_cost,\n  COUNT(DISTINCT user_id) AS unique_users_reached,\n  0 AS new_to_brand_purchases,\n  0 AS non_new_to_brand_purchases,\n  0 AS new_to_brand_purchases_percentage,\n  0 AS new_to_brand_product_sales,\n  0 AS non_new_to_brand_product_sales,\n  0 AS new_to_brand_product_sales_percentage\nFROM\n  sponsored_ads_traffic\n -- OPTIONAL CAMPAIGN FILTER: uncomment the next line to apply the Sponsored Ads list above\n --WHERE campaign IN (SELECT campaign FROM sa_campaigns)\nGROUP BY\n  advertiser_id,\n  advertiser,\n  campaign_id,\n  campaign,\n  traffic_month\n)\n-- Roll up to one row per campaign\nSELECT\n advertiser_id,\n  advertiser,\n  campaign_id,\n  campaign,\n  SUM(unique_users_reached) AS unique_users_reached,\n  SUM(total_cost) AS total_cost,\n  SUM(new_to_brand_purchases) AS new_to_brand_purchases,\n  SUM(non_new_to_brand_purchases) AS non_new_to_brand_purchases,\n ROUND((SUM(new_to_brand_purchases) / (SUM(new_to_brand_purchases)+SUM(non_new_to_brand_purchases))) * 100,2) AS new_to_brand_purchases_percentage,\n  SUM(new_to_brand_product_sales) AS new_to_brand_product_sales,\n  SUM(non_new_to_brand_product_sales) AS non_new_to_brand_product_sales,\n ROUND((SUM(new_to_brand_product_sales) / (SUM(new_to_brand_product_sales)+SUM(non_new_to_brand_product_sales))) * 100,2) AS new_to_brand_product_sales_percentage\nFROM\n  aggregated\nGROUP BY\n advertiser_id,\n  advertiser,\n  campaign_id,\n  campaign\n",
+      "createdAt": "2026-10-22T21:42:00.000Z",
+      "updatedAt": "2026-10-22T21:42:00.000Z",
+      "viz": {
+        "defaults": {
+          "group": "campaign",
+          "measure": "total_cost",
+          "x": "",
+          "chart": "bar",
+          "top": "15",
+          "dir": "desc"
+        },
+        "derived": [
+          {
+            "name": "channel",
+            "label": "Channel",
+            "map": {
+              "col": "advertiser_id",
+              "eq": "Sponsored_ads",
+              "then": "Sponsored Ads",
+              "else": "DSP"
+            }
+          },
+          {
+            "name": "cac",
+            "label": "CAC",
+            "ratio": [
+              "total_cost",
+              "new_to_brand_purchases"
+            ],
+            "fmt": "money"
+          },
+          {
+            "name": "ntb_pct",
+            "label": "NTB % of purchases",
+            "ratio": [
+              "new_to_brand_purchases",
+              [
+                "new_to_brand_purchases",
+                "non_new_to_brand_purchases"
+              ]
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "name": "ntb_roas",
+            "label": "NTB ROAS",
+            "ratio": [
+              "new_to_brand_product_sales",
+              "total_cost"
+            ],
+            "fmt": "x"
+          }
+        ],
+        "hide": [
+          "new_to_brand_purchases_percentage",
+          "new_to_brand_product_sales_percentage",
+          "advertiser_id"
+        ],
+        "labels": {
+          "total_cost": "Spend",
+          "new_to_brand_purchases": "NTB purchases",
+          "non_new_to_brand_purchases": "Repeat purchases",
+          "new_to_brand_product_sales": "NTB sales",
+          "non_new_to_brand_product_sales": "Repeat sales",
+          "unique_users_reached": "Users reached"
+        },
+        "kpis": [
+          {
+            "label": "Spend",
+            "sum": "total_cost",
+            "fmt": "money"
+          },
+          {
+            "label": "NTB purchases",
+            "sum": "new_to_brand_purchases",
+            "fmt": "int"
+          },
+          {
+            "label": "CAC",
+            "ratio": [
+              "total_cost",
+              "new_to_brand_purchases"
+            ],
+            "fmt": "money"
+          },
+          {
+            "label": "NTB % of purchases",
+            "ratio": [
+              "new_to_brand_purchases",
+              [
+                "new_to_brand_purchases",
+                "non_new_to_brand_purchases"
+              ]
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "label": "NTB sales",
+            "sum": "new_to_brand_product_sales",
+            "fmt": "money"
+          }
+        ]
+      },
+      "author": ""
+    },
+    {
+      "id": "ntb-keyword",
+      "title": "NTB by Keyword",
+      "type": "Advanced NTB Analysis",
+      "summary": "Sponsored Products CAC by campaign with a drill-down to every keyword and match type, using both advertised and halo NTB. The input for the SP CAC Deep Dive.",
+      "description": "Returns two kinds of rows in one result: a `CAMPAIGN` rollup row for each Sponsored Products campaign, and a `target` row for each keyword or product target and match type inside it. Each row has impressions, clicks, spend, advertised and halo purchases and sales, NTB purchases and sales (advertised and halo), and CAC both ways.\n\nSpend comes from `sponsored_ads_traffic` and conversions from `amazon_attributed_events_by_conversion_time`, each aggregated to campaign + target + match type and then joined. `cac_halo` (spend ÷ NTB halo purchases) is the headline CAC; `cac_advertised` counts only NTB purchases of the advertised ASIN.\n\nSort the export by campaign, then `sort_order`, then spend, so each campaign rollup sits directly above its targets.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block. These are comments and don't change results.",
+        "Open the brand's own AMC instance. There are no campaigns or keywords to fill in; it returns every SP campaign and target.",
+        "Set the date range in the AMC UI. Run it once for the current month, since this report drives target-level optimization.",
+        "Run and export.",
+        "Sort in Excel by `campaign` (A–Z), then `sort_order` (0 first), then `spend` (high to low), or drop the export into the SP CAC Deep Dive tool, which groups it for you."
+      ],
+      "requirements": [
+        "Paid features: None. Runs on a standard AMC instance.",
+        "Tables: `sponsored_ads_traffic` and `amazon_attributed_events_by_conversion_time` (both standard).",
+        "Scope: Sponsored Products only. Sponsored Brands, Sponsored Display and DSP are excluded.",
+        "Aggregation threshold: AMC drops target rows below its minimum distinct-user count, so long-tail keywords may be missing. Campaign rollups are built from the rows that survive, so a campaign's total can sit slightly under the console."
+      ],
+      "useCases": [
+        "Keyword-level CAC cuts: Find keywords with high spend and a CAC well above the campaign's, then lower bids or negate them.",
+        "Scale efficient targets: Keywords with CAC below the campaign average and room to grow are candidates for higher bids or their own exact-match campaign.",
+        "Match-type strategy: Compare CAC for the same keyword across exact, phrase and broad to decide which match type deserves the budget.",
+        "Halo vs. advertised: A large gap between `cac_advertised` and `cac_halo` shows a keyword is winning new customers for other ASINs, which is worth keeping even when its advertised CAC looks high."
+      ],
+      "example": {
+        "columns": [
+          "grain",
+          "sort_order",
+          "campaign",
+          "target",
+          "match_type",
+          "impressions",
+          "clicks",
+          "spend",
+          "adv_purchases",
+          "adv_sales",
+          "purchases_halo",
+          "sales_halo",
+          "ntb_purchases_adv",
+          "ntb_purchases_halo",
+          "ntb_sales_adv",
+          "ntb_sales_halo",
+          "cac_advertised",
+          "cac_halo"
+        ],
+        "rows": [
+          [
+            "CAMPAIGN",
+            "0",
+            "PLTFRM | Whey | Generic KW | NB | SP",
+            "(all targets)",
+            "",
+            "184220",
+            "2911",
+            "4120.40",
+            "301",
+            "9632.00",
+            "338",
+            "10816.30",
+            "190",
+            "214",
+            "6080.00",
+            "6848.20",
+            "21.69",
+            "19.25"
+          ],
+          [
+            "target",
+            "1",
+            "PLTFRM | Whey | Generic KW | NB | SP",
+            "whey protein powder",
+            "EXACT",
+            "96310",
+            "1702",
+            "2410.15",
+            "188",
+            "6016.00",
+            "210",
+            "6720.40",
+            "121",
+            "136",
+            "3872.00",
+            "4352.70",
+            "19.92",
+            "17.72"
+          ],
+          [
+            "target",
+            "1",
+            "PLTFRM | Whey | Generic KW | NB | SP",
+            "protein powder",
+            "PHRASE",
+            "64870",
+            "905",
+            "1250.05",
+            "84",
+            "2688.00",
+            "95",
+            "3040.50",
+            "52",
+            "58",
+            "1664.00",
+            "1856.30",
+            "24.04",
+            "21.55"
+          ],
+          [
+            "target",
+            "1",
+            "PLTFRM | Whey | Generic KW | NB | SP",
+            "whey isolate",
+            "BROAD",
+            "23040",
+            "304",
+            "460.20",
+            "29",
+            "928.00",
+            "33",
+            "1055.40",
+            "17",
+            "20",
+            "544.00",
+            "639.20",
+            "27.07",
+            "23.01"
+          ]
+        ],
+        "note": "Illustrative values, not client data. Sorted as the How to use steps describe."
+      },
+      "tags": [
+        "Sponsored Products",
+        "No paid features",
+        "CAC",
+        "Keyword"
+      ],
+      "sql": "-- =====================================================================\n-- NTB BY KEYWORD (SP CAMPAIGN + TARGET CAC)  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. The query returns every\n--      Sponsored Products campaign and target, so there is nothing\n--      brand-specific to edit.\n--   2. Set the date range in the AMC UI. This report drives target-level\n--      optimization, so run it once for the current month.\n--   3. Run and export.\n--   4. Sort in Excel by campaign (A-Z), then sort_order (0 first), then\n--      spend (high to low), so each campaign rollup sits above its\n--      targets. AMC has no ORDER BY.\n--\n-- OUTPUT (two kinds of rows in one result)\n--   grain = 'CAMPAIGN'   one rollup row per campaign, target '(all targets)'\n--   grain = 'target'     one row per keyword / target + match type\n--   spend, impressions, clicks\n--   adv_* / *_halo       advertised-ASIN and halo purchases and sales\n--   ntb_*_adv / _halo    NTB purchases and sales, advertised and halo\n--   cac_advertised       spend / NTB advertised purchases\n--   cac_halo             spend / NTB halo purchases (headline CAC)\n--\n-- NOTES\n--   * Sponsored Products only. Conversion-time basis, so numbers line up\n--     with console and STR reports.\n--   * Product targets (ASIN / category) appear in the target column\n--     alongside keywords.\n--   * AMC drops rows below its minimum-user threshold, so low-volume\n--     targets may be missing from the target rows.\n-- =====================================================================\n\nWITH traffic_data AS (\n    -- Spend, impressions and clicks per campaign + target + match type\n    SELECT\n        campaign,\n        targeting                AS target,\n        match_type,\n        SUM(spend) / 100000000.0 AS spend,\n        SUM(impressions)         AS impressions,\n        SUM(clicks)              AS clicks\n    FROM sponsored_ads_traffic\n    WHERE ad_product_type = 'sponsored_products'\n      AND targeting IS NOT NULL\n    GROUP BY campaign, targeting, match_type\n),\n\nconversion_data AS (\n    -- Purchases and sales (advertised, halo and NTB) at the same grain\n    SELECT\n        campaign,\n        targeting                               AS target,\n        match_type,\n        SUM(purchases)                          AS purchases,\n        SUM(product_sales)                      AS sales,\n        SUM(total_purchases)                    AS purchases_halo,\n        SUM(total_product_sales)                AS sales_halo,\n        SUM(new_to_brand_purchases)             AS ntb_purchases,\n        SUM(new_to_brand_product_sales)         AS ntb_sales,\n        SUM(new_to_brand_total_purchases)       AS ntb_purchases_halo,\n        SUM(new_to_brand_total_product_sales)   AS ntb_sales_halo\n    FROM amazon_attributed_events_by_conversion_time\n    WHERE ad_product_type = 'sponsored_products'\n      AND targeting IS NOT NULL\n    GROUP BY campaign, targeting, match_type\n),\n\ntarget_base AS (\n    -- Join spend to conversions\n    SELECT\n        t.campaign              AS campaign,\n        t.target                AS target,\n        t.match_type            AS match_type,\n        t.impressions           AS impressions,\n        t.clicks                AS clicks,\n        t.spend                 AS spend,\n        c.purchases             AS adv_purchases,\n        c.sales                 AS adv_sales,\n        c.purchases_halo        AS purchases_halo,\n        c.sales_halo            AS sales_halo,\n        c.ntb_purchases         AS ntb_purchases_adv,\n        c.ntb_purchases_halo    AS ntb_purchases_halo,\n        c.ntb_sales             AS ntb_sales_adv,\n        c.ntb_sales_halo        AS ntb_sales_halo\n    FROM traffic_data t\n    LEFT JOIN conversion_data c\n        ON  t.campaign   = c.campaign\n        AND t.target     = c.target\n        AND t.match_type = c.match_type\n)\n\n-- Campaign rollup rows\nSELECT\n    'CAMPAIGN'                                          AS grain,\n    0                                                   AS sort_order,\n    tb.campaign                                         AS campaign,\n    '(all targets)'                                     AS target,\n    ''                                                  AS match_type,\n    SUM(tb.impressions)                                 AS impressions,\n    SUM(tb.clicks)                                      AS clicks,\n    SUM(tb.spend)                                       AS spend,\n    SUM(tb.adv_purchases)                               AS adv_purchases,\n    SUM(tb.adv_sales)                                   AS adv_sales,\n    SUM(tb.purchases_halo)                              AS purchases_halo,\n    SUM(tb.sales_halo)                                  AS sales_halo,\n    SUM(tb.ntb_purchases_adv)                           AS ntb_purchases_adv,\n    SUM(tb.ntb_purchases_halo)                          AS ntb_purchases_halo,\n    SUM(tb.ntb_sales_adv)                               AS ntb_sales_adv,\n    SUM(tb.ntb_sales_halo)                              AS ntb_sales_halo,\n    SUM(tb.spend) / NULLIF(SUM(tb.ntb_purchases_adv), 0)  AS cac_advertised,\n    SUM(tb.spend) / NULLIF(SUM(tb.ntb_purchases_halo), 0) AS cac_halo\nFROM target_base tb\nGROUP BY tb.campaign\n\nUNION ALL\n\n-- Target detail rows\nSELECT\n    'target'                                            AS grain,\n    1                                                   AS sort_order,\n    tb.campaign                                         AS campaign,\n    tb.target                                           AS target,\n    tb.match_type                                       AS match_type,\n    tb.impressions                                      AS impressions,\n    tb.clicks                                           AS clicks,\n    tb.spend                                            AS spend,\n    tb.adv_purchases                                    AS adv_purchases,\n    tb.adv_sales                                        AS adv_sales,\n    tb.purchases_halo                                   AS purchases_halo,\n    tb.sales_halo                                       AS sales_halo,\n    tb.ntb_purchases_adv                                AS ntb_purchases_adv,\n    tb.ntb_purchases_halo                               AS ntb_purchases_halo,\n    tb.ntb_sales_adv                                    AS ntb_sales_adv,\n    tb.ntb_sales_halo                                   AS ntb_sales_halo,\n    tb.spend / NULLIF(tb.ntb_purchases_adv, 0)          AS cac_advertised,\n    tb.spend / NULLIF(tb.ntb_purchases_halo, 0)         AS cac_halo\nFROM target_base tb\n",
+      "createdAt": "2026-10-22T21:43:00.000Z",
+      "updatedAt": "2026-10-22T21:43:00.000Z",
+      "viz": {
+        "defaults": {
+          "group": "target_match",
+          "measure": "spend",
+          "x": "",
+          "chart": "bar",
+          "top": "15",
+          "dir": "desc"
+        },
+        "filter": {
+          "col": "grain",
+          "value": "target",
+          "label": "Keyword rows only (hide campaign rollups)"
+        },
+        "derived": [
+          {
+            "name": "target_match",
+            "label": "Keyword + match type",
+            "concat": [
+              "target",
+              "match_type"
+            ],
+            "sep": " · "
+          },
+          {
+            "name": "cac_halo_calc",
+            "label": "CAC (halo)",
+            "ratio": [
+              "spend",
+              "ntb_purchases_halo"
+            ],
+            "fmt": "money"
+          },
+          {
+            "name": "cac_adv_calc",
+            "label": "CAC (advertised)",
+            "ratio": [
+              "spend",
+              "ntb_purchases_adv"
+            ],
+            "fmt": "money"
+          }
+        ],
+        "hide": [
+          "cac_halo",
+          "cac_advertised",
+          "grain"
+        ],
+        "labels": {
+          "ntb_purchases_halo": "NTB purchases (halo)",
+          "ntb_purchases_adv": "NTB purchases (advertised)",
+          "ntb_sales_halo": "NTB sales (halo)",
+          "ntb_sales_adv": "NTB sales (advertised)",
+          "adv_purchases": "Purchases (advertised)",
+          "adv_sales": "Sales (advertised)",
+          "purchases_halo": "Purchases (halo)",
+          "sales_halo": "Sales (halo)"
+        },
+        "kpis": [
+          {
+            "label": "Spend",
+            "sum": "spend",
+            "fmt": "money"
+          },
+          {
+            "label": "NTB purchases (halo)",
+            "sum": "ntb_purchases_halo",
+            "fmt": "int"
+          },
+          {
+            "label": "CAC (halo)",
+            "ratio": [
+              "spend",
+              "ntb_purchases_halo"
+            ],
+            "fmt": "money"
+          },
+          {
+            "label": "CAC (advertised)",
+            "ratio": [
+              "spend",
+              "ntb_purchases_adv"
+            ],
+            "fmt": "money"
+          },
+          {
+            "label": "Keywords",
+            "distinct": "target_match"
+          }
+        ]
+      },
+      "author": ""
+    },
+    {
+      "id": "ntb-cross-promo",
+      "title": "NTB Cross-Promo (Ads Only)",
+      "type": "Advanced NTB Analysis",
+      "summary": "For each ASIN that brings in new-to-brand customers, which other ASINs those customers buy next, how many do it, and how many days later.",
+      "description": "Starts from every new-to-brand purchase (the customer's entry ASIN) and finds later purchases of a different ASIN by the same customer. Each row is an entry ASIN → next ASIN pair, split by the ad product credited for each purchase, with the number of distinct customers who made that move and the average days between the two purchases.\n\nContext columns show each ASIN's total attributed purchases and buyers in the window, so you can tell a strong pairing from one that only looks big because the next ASIN is a bestseller. `subsequent_asin_rank` ranks the next ASINs within each entry ASIN by customers.\n\nBoth purchases come from `amazon_attributed_events_by_conversion_time`, so only ad-attributed purchases count. A second purchase no ad touched won't show up, which makes this a floor on real cross-purchase behavior.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block. These are comments and don't change results.",
+        "Open the brand's own AMC instance. There is nothing brand-specific to edit beyond the optional filter.",
+        "Set the date range in the AMC UI to a long window (3–13 months) so new customers have time to buy again and more pairs clear AMC's user threshold.",
+        "Optional ASIN filter: in the `asin_filter` CTE, replace `B000000001` and `B000000002` with the entry ASINs you want to study, one `('ASIN')` per line, separated by commas.",
+        "Then uncomment the line `-- AND tracked_asin IN (SELECT asin FROM asin_filter)` in `first_purchases` by deleting the leading `--`. Leave it commented to include every entry ASIN.",
+        "Run and export. In Excel, sort by `first_asin`, then `subsequent_asin_rank`.",
+        "For one row per ASIN pair, pivot and sum `cross_promo_users` by `first_asin` and `subsequent_asin`. The raw output splits a pair across ad product combinations, and the rank is shared across those rows."
+      ],
+      "requirements": [
+        "Paid features: None. Runs on a standard AMC instance.",
+        "Table: `amazon_attributed_events_by_conversion_time` (standard). Ad-attributed purchases only, with Amazon's `new_to_brand` flag.",
+        "Date range: Long windows work best. Short ranges leave little time for a second purchase and push most pairs under the threshold.",
+        "Aggregation threshold: AMC drops rows below its minimum distinct-user count, so small pairs will be missing. Splitting by ad product type makes rows smaller, so expect more drop-off on smaller brands.",
+        "Same-day purchases: The next purchase must have a later `conversion_event_date` than the first, so a second ASIN bought at the same moment isn't counted."
+      ],
+      "useCases": [
+        "Retargeting and cross-sell: Target new customers of an entry ASIN with SD or DSP retargeting for the ASIN they're most likely to buy next.",
+        "Timing: Use `avg_days_to_subsequent_purchase` to set lookback windows and when to start retargeting new buyers.",
+        "Bundles and virtual bundles: Pairs with many customers and a short gap are candidates for a bundle or a Brand Store cross-sell row.",
+        "Gateway ASINs: Entry ASINs whose new customers go on to buy many other products are worth acquiring customers on, even at a higher CAC.",
+        "Creative and landing pages: Feature the most common next ASIN in Sponsored Brands creative or on the store page new customers land on."
+      ],
+      "example": {
+        "columns": [
+          "first_asin",
+          "subsequent_asin",
+          "first_ad_product_type",
+          "subsequent_ad_product_type",
+          "cross_promo_users",
+          "avg_days_to_subsequent_purchase",
+          "first_asin_total_purchases",
+          "first_asin_unique_buyers",
+          "subsequent_asin_total_purchases",
+          "subsequent_asin_unique_buyers",
+          "subsequent_asin_rank"
+        ],
+        "rows": [
+          [
+            "B0EXAMPL01",
+            "B0EXAMPL04",
+            "sponsored_products",
+            "sponsored_products",
+            "412",
+            "23.6",
+            "18450",
+            "15210",
+            "6320",
+            "5480",
+            "1"
+          ],
+          [
+            "B0EXAMPL01",
+            "B0EXAMPL02",
+            "sponsored_products",
+            "sponsored_brands",
+            "268",
+            "31.2",
+            "18450",
+            "15210",
+            "9875",
+            "8120",
+            "2"
+          ],
+          [
+            "B0EXAMPL01",
+            "B0EXAMPL03",
+            "sponsored_products",
+            "sponsored_products",
+            "155",
+            "41.8",
+            "18450",
+            "15210",
+            "4210",
+            "3690",
+            "3"
+          ],
+          [
+            "B0EXAMPL02",
+            "B0EXAMPL01",
+            "sponsored_brands",
+            "sponsored_products",
+            "301",
+            "19.4",
+            "9875",
+            "8120",
+            "18450",
+            "15210",
+            "1"
+          ]
+        ],
+        "note": "Illustrative values, not client data. Sorted as the How to use steps describe."
+      },
+      "tags": [
+        "Attributed events",
+        "No paid features",
+        "Cross-sell",
+        "ASIN filter"
+      ],
+      "sql": "-- =====================================================================\n-- NTB CROSS-PROMO (WHAT NEW CUSTOMERS BUY NEXT)  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. The query reads that advertiser's\n--      ad-attributed purchases, so there is nothing brand-specific to edit.\n--   2. Set the date range in the AMC UI. Use a long window (3-13 months)\n--      so new customers have time to make a second purchase and more\n--      ASIN pairs clear AMC's minimum-user threshold.\n--   3. OPTIONAL: to study only certain entry ASINs, edit the asin_filter\n--      CTE and uncomment the line marked \"OPTIONAL ASIN FILTER\" in\n--      first_purchases. Leave it commented to include every entry ASIN.\n--   4. Run. Sort in Excel by first_asin, then subsequent_asin_rank\n--      (AMC has no ORDER BY).\n--\n-- OUTPUT (one row per entry ASIN x next ASIN x ad product pair)\n--   first_asin                 ASIN of the new-to-brand purchase\n--   subsequent_asin            a different ASIN the same customer bought later\n--   first / subsequent_ad_product_type\n--                              ad product credited for each purchase\n--                              (sponsored_products, sponsored_brands,\n--                              sponsored_display; blank is usually DSP)\n--   cross_promo_users          distinct customers who made that move\n--   avg_days_to_subsequent_purchase\n--   *_total_purchases / *_unique_buyers\n--                              each ASIN's attributed volume in the window\n--   subsequent_asin_rank       rank of the next ASIN within each first_asin\n--\n-- NOTES\n--   * Ad-attributed purchases only (amazon_attributed_events_by_conversion_time).\n--     A next purchase that no ad touched won't appear.\n--   * A pair can appear on several rows, one per ad product combination,\n--     and the rank is shared across them. Sum cross_promo_users by\n--     first_asin + subsequent_asin in Excel for one row per pair.\n--   * AMC drops rows below its minimum-user threshold, so small pairs\n--     will be missing.\n-- =====================================================================\n\nWITH\n  -- OPTIONAL ASIN FILTER: replace the examples with the entry ASINs to study\n  asin_filter (asin) AS (\n    VALUES\n      ('B000000001'),\n      ('B000000002')\n  ),\n\n  -- Every attributed purchase with a customer and ASIN\n  all_purchases AS (\n    SELECT\n      user_id,\n      tracked_asin,\n      ad_product_type,\n      conversion_event_date,\n      new_to_brand,\n      purchases\n    FROM\n      amazon_attributed_events_by_conversion_time\n    WHERE\n      purchases > 0\n      AND user_id IS NOT NULL\n      AND tracked_asin IS NOT NULL\n  ),\n\n  -- Purchase volume and buyers per ASIN, for context columns\n  asin_metrics AS (\n    SELECT\n      tracked_asin,\n      SUM(purchases) AS asin_total_purchases,\n      COUNT(DISTINCT user_id) AS asin_unique_buyers\n    FROM\n      all_purchases\n    GROUP BY\n      tracked_asin\n  ),\n\n  -- New-to-brand purchases: the customer's entry ASIN\n  first_purchases AS (\n    SELECT\n      user_id,\n      tracked_asin AS first_asin,\n      ad_product_type AS first_ad_product_type,\n      conversion_event_date AS first_purchase_date,\n      new_to_brand\n    FROM\n      all_purchases\n    WHERE\n      new_to_brand = TRUE\n      -- OPTIONAL ASIN FILTER: uncomment the next line to use the list above\n      -- AND tracked_asin IN (SELECT asin FROM asin_filter)\n  ),\n\n  -- Any purchase that could come after it\n  subsequent_purchases AS (\n    SELECT\n      user_id,\n      tracked_asin AS subsequent_asin,\n      ad_product_type AS subsequent_ad_product_type,\n      conversion_event_date AS subsequent_purchase_date\n    FROM\n      all_purchases\n  ),\n\n  -- Pair each NTB purchase with later purchases of a different ASIN\n  cross_promo_data AS (\n    SELECT\n      fp.first_asin,\n      sp.subsequent_asin,\n      fp.first_ad_product_type,\n      sp.subsequent_ad_product_type,\n      am1.asin_total_purchases AS first_asin_total_purchases,\n      am1.asin_unique_buyers AS first_asin_unique_buyers,\n      am2.asin_total_purchases AS subsequent_asin_total_purchases,\n      am2.asin_unique_buyers AS subsequent_asin_unique_buyers,\n      COUNT(DISTINCT fp.user_id) AS cross_promo_users,\n      AVG(\n        SECONDS_BETWEEN (\n          fp.first_purchase_date,\n          sp.subsequent_purchase_date\n        ) / 86400.0\n      ) AS avg_days_to_subsequent_purchase\n    FROM\n      first_purchases AS fp\n      INNER JOIN subsequent_purchases AS sp ON fp.user_id = sp.user_id\n      AND sp.subsequent_purchase_date > fp.first_purchase_date\n      AND sp.subsequent_asin <> fp.first_asin\n      LEFT JOIN asin_metrics AS am1 ON fp.first_asin = am1.tracked_asin\n      LEFT JOIN asin_metrics AS am2 ON sp.subsequent_asin = am2.tracked_asin\n    GROUP BY\n      1,\n      2,\n      3,\n      4,\n      5,\n      6,\n      7,\n      8\n  ),\n\n  -- Rank next ASINs within each entry ASIN by customers\n  ranked AS (\n    SELECT\n      first_asin,\n      subsequent_asin,\n      first_ad_product_type,\n      subsequent_ad_product_type,\n      cross_promo_users,\n      avg_days_to_subsequent_purchase,\n      first_asin_total_purchases,\n      first_asin_unique_buyers,\n      subsequent_asin_total_purchases,\n      subsequent_asin_unique_buyers,\n      DENSE_RANK() OVER (\n        PARTITION BY\n          first_asin\n        ORDER BY\n          cross_promo_users DESC\n      ) AS subsequent_asin_rank\n    FROM\n      cross_promo_data\n  )\n\nSELECT\n  first_asin,\n  subsequent_asin,\n  first_ad_product_type,\n  subsequent_ad_product_type,\n  cross_promo_users,\n  avg_days_to_subsequent_purchase,\n  first_asin_total_purchases,\n  first_asin_unique_buyers,\n  subsequent_asin_total_purchases,\n  subsequent_asin_unique_buyers,\n  subsequent_asin_rank\nFROM\n  ranked\n",
+      "createdAt": "2026-10-22T22:17:00.000Z",
+      "updatedAt": "2026-10-26T17:58:41.277Z",
+      "viz": {
+        "defaults": {
+          "group": "pair",
+          "measure": "cross_promo_users",
+          "x": "",
+          "chart": "bar",
+          "top": "15",
+          "dir": "desc"
+        },
+        "derived": [
+          {
+            "name": "pair",
+            "label": "Entry ASIN → next ASIN",
+            "concat": [
+              "first_asin",
+              "subsequent_asin"
+            ],
+            "sep": " → "
+          }
+        ],
+        "agg": {
+          "first_asin_total_purchases": "max",
+          "first_asin_unique_buyers": "max",
+          "subsequent_asin_total_purchases": "max",
+          "subsequent_asin_unique_buyers": "max"
+        },
+        "kpis": [
+          {
+            "label": "Cross-purchase customers",
+            "sum": "cross_promo_users",
+            "fmt": "int",
+            "note": "A customer can count in more than one pair"
+          },
+          {
+            "label": "ASIN pairs",
+            "distinct": "pair"
+          },
+          {
+            "label": "Entry ASINs",
+            "distinct": "first_asin"
+          },
+          {
+            "label": "Avg days to next purchase",
+            "wavg": [
+              "avg_days_to_subsequent_purchase",
+              "cross_promo_users"
+            ],
+            "fmt": "num1"
+          }
+        ]
+      },
+      "author": ""
+    },
+    {
+      "id": "tentpole-ntb-retention",
+      "title": "Tentpole NTB Retention",
+      "type": "Advanced NTB Analysis",
+      "summary": "How well a tentpole's or discount period's new-to-brand customers stick with the brand afterward: cohort size, how many bought again, and their repeat orders.",
+      "description": "Finds every shopper who made an ad-attributed, new-to-brand purchase during a tentpole or discount window, then looks at all of their brand purchases after the event, ad-attributed or not. It returns one summary row: the cohort size, how many of those customers bought again, the repeat rate, and their total repeat orders.\n\nThe cohort comes from `amazon_attributed_events_by_conversion_time` (NTB purchases credited to an ad during the event). Repeat orders come from `conversions_all`, which also counts purchases no ad touched, so the repeat side isn't limited to ad-driven orders.\n\nThe post-event window runs from the day after the event to the end of the AMC run window, so it grows the later you run it. Compare events using the same number of days after each one.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>`, `<AMC INSTANCE>` and `<EVENT NAME>` in the comment block. These are comments and don't change results.",
+        "In step 1 (`ntb_cohort`), change the two dates marked `UPDATE` to the first and last day of the tentpole or discount period. Example: `'2026-06-08'` and `'2026-06-11'` for Prime Day 2026.",
+        "In step 2 (`repeat_orders`), change the date marked `UPDATE` to the day after the event ends. Example: `'2026-06-12'`.",
+        "Keep the dates in straight single quotes (`'2026-06-08'`). Curly quotes copied from Word, Slack or email (‘ ’) make AMC reject the query.",
+        "Set the AMC run window from the event's first day through the latest date available.",
+        "Run. The output is one row. To compare events, run it once per event with the same number of post-event days, then put the rows side by side."
+      ],
+      "requirements": [
+        "Paid feature: Amazon Insights. Step 2 reads `conversions_all`, which AMC lists under Subscriptions, not with the standard Amazon Ads tables. Check Paid features on the brand's instance before running.",
+        "Tables: `amazon_attributed_events_by_conversion_time` (standard) for the event cohort, and `conversions_all` for repeat orders.",
+        "Cohort size: AMC suppresses results when the new-customer cohort is small. Works best for larger events or brands.",
+        "Repeat coverage: `conversions_all` covers ad-attributed and non-attributed purchases of ASINs tracked to the brand's DSP or Sponsored Ads campaigns. Purchases of ASINs that have never been advertised won't count as repeats.",
+        "Order counting: `repeat_orders` counts rows in `conversions_all` with `event_subtype = 'order'`. If a multi-ASIN order comes through as one row per ASIN, `repeat_orders` runs high. `repeat_customers` and the repeat rate aren't affected.",
+        "Post-event window: It runs from the day after the event to the end of the AMC run window, so a later run shows a higher repeat rate. Match the number of post-event days when comparing events."
+      ],
+      "useCases": [
+        "Judge tentpole quality, not just volume: An event that brought in many NTB customers who never came back is worth less than its NTB count suggests.",
+        "Compare events: Run it for Prime Day, Prime Big Deal Days and Black Friday with the same post-event window to see which event's new customers stick best.",
+        "Discount depth: Compare a deep-discount period with a lighter one to see whether heavy promos attract one-time deal shoppers.",
+        "Plan post-event retargeting: A low repeat rate is a case for retargeting the event's new customers with SD or DSP in the weeks after.",
+        "Feed LTV:CAC: Pair the repeat rate with event CAC to see what a tentpole customer is really worth."
+      ],
+      "example": {
+        "columns": [
+          "ntb_customers",
+          "repeat_customers",
+          "repeat_rate",
+          "repeat_orders"
+        ],
+        "rows": [
+          [
+            "18420",
+            "3315",
+            "0.1800",
+            "5120"
+          ]
+        ],
+        "note": "Illustrative values, not client data. One summary row per run."
+      },
+      "tags": [
+        "conversions_all",
+        "Paid feature",
+        "Tentpole",
+        "Retention"
+      ],
+      "sql": "-- =====================================================================\n-- TENTPOLE NTB RETENTION  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Event: <EVENT NAME, e.g. Prime Day 2026>\n-- =====================================================================\n-- HOW TO USE\n--   1. UPDATE the two tentpole dates in step 1 (first and last day of the\n--      event or discount period). Example: 2026-06-08 to 2026-06-11.\n--   2. UPDATE the start date in step 2 to the day after the event ends.\n--      Example: 2026-06-12.\n--   3. Set the AMC run window from the event's first day through the\n--      latest date available.\n--   4. Run. The output is a single summary row.\n--\n-- OUTPUT (one row)\n--   ntb_customers      shoppers with an ad-attributed NTB purchase during the event\n--   repeat_customers   of those, how many bought the brand again after the event\n--   repeat_rate        repeat_customers / ntb_customers (0-1)\n--   repeat_orders      their post-event orders (ad-attributed or not)\n--\n-- NOTES\n--   * Needs conversions_all (listed under Subscriptions in AMC).\n--   * AMC suppresses results for small cohorts. Works best for larger\n--     events or brands.\n--   * Later runs give a longer post-event window, so compare events using\n--     the same number of days after each event.\n-- =====================================================================\n\n-- 1) Users who made an NTB purchase during the tentpole\nWITH ntb_cohort AS (\n  SELECT\n    user_id\n  FROM amazon_attributed_events_by_conversion_time\n  WHERE new_to_brand_purchases > 0\n    AND conversion_event_date >= '2026-06-08'   -- UPDATE: event start\n    AND conversion_event_date <= '2026-06-11'   -- UPDATE: event end\n    AND user_id IS NOT NULL\n  GROUP BY user_id\n),\n\n-- 2) All brand orders by those users (ad-attributed or not) after the event\nrepeat_orders AS (\n  SELECT\n    c.user_id,\n    COUNT(*) AS repeat_orders\n  FROM conversions_all c\n  JOIN ntb_cohort n ON c.user_id = n.user_id\n  WHERE c.event_subtype = 'order'\n    AND c.event_date_utc >= '2026-06-12'        -- UPDATE: day after event end\n  GROUP BY c.user_id\n)\n\n-- 3) Cohort summary\nSELECT\n  COUNT(DISTINCT n.user_id) AS ntb_customers,\n  COUNT(DISTINCT r.user_id) AS repeat_customers,\n  COUNT(DISTINCT r.user_id) * 1.0 / COUNT(DISTINCT n.user_id) AS repeat_rate,\n  SUM(r.repeat_orders) AS repeat_orders\nFROM ntb_cohort n\nLEFT JOIN repeat_orders r ON n.user_id = r.user_id\n",
+      "viz": {
+        "derived": [
+          {
+            "name": "repeat_pct",
+            "label": "Repeat rate",
+            "ratio": [
+              "repeat_customers",
+              "ntb_customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "name": "orders_per_repeat",
+            "label": "Orders per repeat customer",
+            "ratio": [
+              "repeat_orders",
+              "repeat_customers"
+            ],
+            "fmt": "num2"
+          },
+          {
+            "name": "orders_per_ntb",
+            "label": "Repeat orders per NTB customer",
+            "ratio": [
+              "repeat_orders",
+              "ntb_customers"
+            ],
+            "fmt": "num2"
+          }
+        ],
+        "hide": [
+          "repeat_rate"
+        ],
+        "labels": {
+          "ntb_customers": "NTB customers (event)",
+          "repeat_customers": "Repeat customers",
+          "repeat_orders": "Repeat orders"
+        },
+        "formats": {
+          "ntb_customers": "int",
+          "repeat_customers": "int",
+          "repeat_orders": "int"
+        },
+        "kpis": [
+          {
+            "label": "NTB customers from the event",
+            "sum": "ntb_customers",
+            "fmt": "int",
+            "note": "Ad-attributed NTB purchase during the event"
+          },
+          {
+            "label": "Bought again after",
+            "sum": "repeat_customers",
+            "fmt": "int"
+          },
+          {
+            "label": "Repeat rate",
+            "ratio": [
+              "repeat_customers",
+              "ntb_customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "label": "Repeat orders",
+            "sum": "repeat_orders",
+            "fmt": "int",
+            "note": "Ad-attributed or not"
+          },
+          {
+            "label": "Orders per repeat customer",
+            "ratio": [
+              "repeat_orders",
+              "repeat_customers"
+            ],
+            "fmt": "num2"
+          },
+          {
+            "label": "Repeat orders per NTB customer",
+            "ratio": [
+              "repeat_orders",
+              "ntb_customers"
+            ],
+            "fmt": "num2"
+          }
+        ]
+      },
+      "createdAt": "2026-11-20T17:50:00.000Z",
+      "updatedAt": "2026-11-20T17:50:00.000Z",
+      "author": ""
+    },
+    {
+      "id": "ltv-4-purchase",
+      "title": "4-Purchase LTV by Cohort",
+      "type": "LTV Analysis",
+      "summary": "Revenue from each new customer's first 4 brand orders, divided by all new customers, by first-purchase month and category. Compare it to CAC for LTV:CAC.",
+      "description": "Calculates 4-Purchase LTV the way PLTFRM's data lead defines it: total revenue from each customer's first four brand orders, divided by every new customer with at least one order. Customers who never come back stay in the denominator, which keeps the number honest.\n\nIt reads every order of the brand's ASINs in `amazon_retail_purchases`, collapses line items to distinct orders, numbers each customer's orders by date, and keeps orders 1–4. Each customer is assigned to the month of their first order (the cohort) and the category of that first order. The output also shows how many customers reached orders 2, 3 and 4 and the revenue at each step, so you see the repeat curve and not only the final number.\n\nA new customer here is someone whose first brand order falls inside the date range, not Amazon's NTB flag, and organic orders count. That's why it sits under Other rather than NTB analysis.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block.",
+        "Required: in `asin_map`, replace the example rows with every ASIN the brand sells and its reporting category, one `('ASIN', 'Category')` per line, separated by commas. Pull the list from the brand's product report.",
+        "Put any ASIN you can't categorize under `'Unmapped'` instead of leaving it out. Only listed ASINs count, so a missing ASIN can make a repeat customer look new.",
+        "Double any apostrophe inside a category name, e.g. `'Kid''s'`.",
+        "Set the date range in the AMC UI to the longest window you have: 13 months standard, or up to 5 years with Amazon Retail Purchases.",
+        "Run it. Expect several minutes on large brands (about 3.5 minutes for 13 months on a 200-ASIN brand).",
+        "In Excel, drop the first 1–2 cohort months (existing customers look new there) and the most recent 3–4 (not enough time to repeat) before comparing LTV to CAC."
+      ],
+      "requirements": [
+        "Paid feature: Amazon Retail Purchases. The query reads `amazon_retail_purchases`, which comes with that subscription. Check Paid features in the AMC console.",
+        "ASIN-to-category map: You supply it. Every brand ASIN needs a row, or its orders are ignored.",
+        "Date range: Longest available. Short windows understate LTV because customers haven't had time to reach purchase 4.",
+        "Revenue: `unit_price * purchase_units_sold`, gross of returns, before COGS and Amazon fees. It's revenue LTV, not profit.",
+        "Aggregation threshold: AMC drops cohort × category rows under its minimum distinct-user count. Merge small categories or use quarterly cohorts if rows go missing."
+      ],
+      "useCases": [
+        "LTV:CAC by category: Divide each category's 4-Purchase LTV by its CAC from the NTB by Campaign report to see where acquisition spend pays back best.",
+        "Budget priority: Categories with high LTV:CAC (strong first orders or strong repeat) earn more prospecting budget; low ratios point to CAC that's too high for what the customer is worth.",
+        "Repeat curve: The share of customers reaching orders 2, 3 and 4 shows whether a category wins on first-order size or on loyalty, which shapes retargeting and Subscribe & Save pushes.",
+        "Cross-check another LTV source: Compare against the Customer Lifetime Journey report or a data lead's LTV to explain gaps (window length, category assignment, organic vs. ad-driven)."
+      ],
+      "example": {
+        "columns": [
+          "cohort_month",
+          "first_category",
+          "new_customers",
+          "customers_reaching_p2",
+          "customers_reaching_p3",
+          "customers_reaching_p4",
+          "revenue_p1",
+          "revenue_p2",
+          "revenue_p3",
+          "revenue_p4",
+          "revenue_through_4_purchases",
+          "four_purchase_ltv"
+        ],
+        "rows": [
+          [
+            "2026-01-01",
+            "Protein",
+            "4210",
+            "1263",
+            "632",
+            "337",
+            "197045.00",
+            "61875.40",
+            "30330.80",
+            "16173.60",
+            "305424.80",
+            "72.55"
+          ],
+          [
+            "2026-01-01",
+            "Pre-Workout",
+            "1980",
+            "495",
+            "218",
+            "99",
+            "82170.00",
+            "20295.00",
+            "8938.00",
+            "4059.00",
+            "115462.00",
+            "58.31"
+          ],
+          [
+            "2026-02-01",
+            "Protein",
+            "3895",
+            "1130",
+            "545",
+            "292",
+            "183455.00",
+            "54240.00",
+            "26160.00",
+            "14016.00",
+            "277871.00",
+            "71.34"
+          ],
+          [
+            "2026-02-01",
+            "Pre-Workout",
+            "1745",
+            "419",
+            "183",
+            "87",
+            "72417.50",
+            "17179.00",
+            "7503.00",
+            "3567.00",
+            "100666.50",
+            "57.69"
+          ]
+        ],
+        "note": "Illustrative values and categories, not client data. LTV rounded for display."
+      },
+      "tags": [
+        "amazon_retail_purchases",
+        "Paid feature",
+        "LTV",
+        "Cohort",
+        "ASIN map"
+      ],
+      "sql": "-- =====================================================================\n-- 4-PURCHASE LTV BY COHORT AND CATEGORY  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. It needs the Amazon Retail\n--      Purchases paid feature (the amazon_retail_purchases table).\n--   2. Fill in asin_map with EVERY ASIN the brand sells and the category\n--      you want it reported under, one ('ASIN', 'Category') row per ASIN,\n--      separated by commas. Pull the list from the brand's product report.\n--      * Only listed ASINs count. An order of an unlisted ASIN is ignored,\n--        which can make a repeat customer look new.\n--      * Put ASINs you can't categorize under 'Unmapped' rather than\n--        leaving them out.\n--      * Double any apostrophe inside a category name ('Kid''s').\n--   3. Set the date range in the AMC UI. Use the longest window available\n--      (13 months standard; up to 5 years with Amazon Retail Purchases) so\n--      cohorts have time to reach purchase 4.\n--   4. Run. Expect several minutes on large brands.\n--   5. In Excel, drop the first 1-2 cohort months (existing customers look\n--      new there) and the most recent 3-4 (not enough time to repeat)\n--      before comparing LTV to CAC.\n--\n-- DEFINITION (4-Purchase LTV)\n--   revenue from each customer's first 4 brand orders\n--   / ALL new customers with at least 1 brand order\n--   New customer = first brand order inside the date range (not Amazon's\n--   NTB flag). Category = category of that first order.\n--\n-- OUTPUT (one row per cohort month x first-order category)\n--   new_customers                      customers whose first order fell in the month\n--   customers_reaching_p2 / p3 / p4    customers who placed order 2, 3, 4\n--   revenue_p1 ... revenue_p4          revenue from order 1, 2, 3, 4 ($)\n--   revenue_through_4_purchases        sum of the above ($)\n--   four_purchase_ltv                  revenue_through_4_purchases / new_customers\n--\n-- NOTES\n--   * Includes organic orders: every brand order counts, whether or not\n--     the customer saw an ad. Compare to CAC knowing CAC is ad spend only.\n--   * Revenue is unit_price * purchase_units_sold, gross of returns,\n--     before COGS and fees.\n--   * AMC drops rows below its minimum-user threshold; small categories\n--     may need to be merged.\n-- =====================================================================\n\nWITH asin_map AS (\n    -- REQUIRED: replace with the brand's ASINs and categories\n    SELECT asin_code, category\n    FROM (VALUES\n        ('B000000001', 'Category A'),\n        ('B000000002', 'Category A'),\n        ('B000000003', 'Category B'),\n        ('B000000004', 'Unmapped')\n    ) AS t(asin_code, category)\n),\n\n-- Brand line items, one row per order line\nbrand_lines AS (\n    SELECT\n        p.user_id,\n        p.purchase_id,\n        p.purchase_date_utc,\n        p.asin,\n        m.category,\n        p.unit_price * p.purchase_units_sold AS line_revenue\n    FROM amazon_retail_purchases p\n    INNER JOIN asin_map m ON p.asin = m.asin_code\n    WHERE p.user_id IS NOT NULL\n),\n\n-- Collapse to distinct orders per customer\norders AS (\n    SELECT\n        user_id,\n        purchase_id,\n        MIN(purchase_date_utc) AS order_ts,\n        SUM(line_revenue) AS order_revenue\n    FROM brand_lines\n    GROUP BY user_id, purchase_id\n),\n\n-- Rank each customer's orders chronologically, keep first 4\nranked_orders AS (\n    SELECT\n        user_id,\n        order_ts,\n        order_revenue,\n        ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY order_ts, purchase_id) AS purchase_number\n    FROM orders\n),\n\nfirst_four AS (\n    SELECT user_id, order_ts, order_revenue, purchase_number\n    FROM ranked_orders\n    WHERE purchase_number <= 4\n),\n\n-- Category of the first order (highest-revenue line if the order has several)\nfirst_order_category AS (\n    SELECT user_id, category\n    FROM (\n        SELECT\n            l.user_id,\n            l.category,\n            ROW_NUMBER() OVER (PARTITION BY l.user_id ORDER BY l.purchase_date_utc, l.line_revenue DESC) AS line_rank\n        FROM brand_lines l\n    ) x\n    WHERE line_rank = 1\n),\n\n-- One row per customer: cohort month, category, revenue and flags per purchase number\ncustomer_ltv AS (\n    SELECT\n        f.user_id,\n        DATE_TRUNC('MONTH', MIN(f.order_ts)) AS cohort_month,\n        MAX(fc.category) AS first_category,\n        SUM(f.order_revenue) AS rev_through_4,\n        SUM(CASE WHEN f.purchase_number = 1 THEN f.order_revenue ELSE 0 END) AS rev_p1,\n        SUM(CASE WHEN f.purchase_number = 2 THEN f.order_revenue ELSE 0 END) AS rev_p2,\n        SUM(CASE WHEN f.purchase_number = 3 THEN f.order_revenue ELSE 0 END) AS rev_p3,\n        SUM(CASE WHEN f.purchase_number = 4 THEN f.order_revenue ELSE 0 END) AS rev_p4,\n        MAX(CASE WHEN f.purchase_number = 2 THEN 1 ELSE 0 END) AS reached_p2,\n        MAX(CASE WHEN f.purchase_number = 3 THEN 1 ELSE 0 END) AS reached_p3,\n        MAX(CASE WHEN f.purchase_number = 4 THEN 1 ELSE 0 END) AS reached_p4\n    FROM first_four f\n    INNER JOIN first_order_category fc ON f.user_id = fc.user_id\n    GROUP BY f.user_id\n)\n\nSELECT\n    cohort_month,\n    first_category,\n    COUNT(DISTINCT user_id) AS new_customers,\n    SUM(reached_p2) AS customers_reaching_p2,\n    SUM(reached_p3) AS customers_reaching_p3,\n    SUM(reached_p4) AS customers_reaching_p4,\n    SUM(rev_p1) AS revenue_p1,\n    SUM(rev_p2) AS revenue_p2,\n    SUM(rev_p3) AS revenue_p3,\n    SUM(rev_p4) AS revenue_p4,\n    SUM(rev_through_4) AS revenue_through_4_purchases,\n    SUM(rev_through_4) / COUNT(DISTINCT user_id) AS four_purchase_ltv\nFROM customer_ltv\nGROUP BY cohort_month, first_category\n",
+      "createdAt": "2026-10-22T21:44:00.000Z",
+      "updatedAt": "2026-10-22T21:44:00.000Z",
+      "viz": {
+        "defaults": {
+          "group": "first_category",
+          "measure": "ltv",
+          "x": "cohort_month",
+          "chart": "line",
+          "top": "6",
+          "dir": "desc"
+        },
+        "derived": [
+          {
+            "name": "ltv",
+            "label": "4-Purchase LTV",
+            "ratio": [
+              "revenue_through_4_purchases",
+              "new_customers"
+            ],
+            "fmt": "money"
+          },
+          {
+            "name": "p2_rate",
+            "label": "% reaching purchase 2",
+            "ratio": [
+              "customers_reaching_p2",
+              "new_customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "name": "p4_rate",
+            "label": "% reaching purchase 4",
+            "ratio": [
+              "customers_reaching_p4",
+              "new_customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "name": "first_order_value",
+            "label": "First-order revenue per customer",
+            "ratio": [
+              "revenue_p1",
+              "new_customers"
+            ],
+            "fmt": "money"
+          }
+        ],
+        "hide": [
+          "four_purchase_ltv"
+        ],
+        "kpis": [
+          {
+            "label": "New customers",
+            "sum": "new_customers",
+            "fmt": "int"
+          },
+          {
+            "label": "Revenue through 4 purchases",
+            "sum": "revenue_through_4_purchases",
+            "fmt": "money"
+          },
+          {
+            "label": "4-Purchase LTV",
+            "ratio": [
+              "revenue_through_4_purchases",
+              "new_customers"
+            ],
+            "fmt": "money"
+          },
+          {
+            "label": "Reached purchase 2",
+            "ratio": [
+              "customers_reaching_p2",
+              "new_customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "label": "Reached purchase 4",
+            "ratio": [
+              "customers_reaching_p4",
+              "new_customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          }
+        ],
+        "rankBy": "new_customers"
+      },
+      "author": ""
+    },
+    {
+      "id": "true-lifetime-ltv",
+      "title": "Lifetime LTV by Year Cohort",
+      "type": "LTV Analysis",
+      "summary": "Lifetime revenue per customer across everything they've bought in up to 5 years of retail purchases, overall and by the year of their first purchase.",
+      "description": "Adds up every purchase each customer made of the brand's ASINs across the full Amazon Retail Purchases window (up to about 5 years), then divides total revenue by customers to get lifetime LTV. Unlike 4-Purchase LTV, there's no cap on the number of orders.\n\nCustomers whose first purchase falls in the last 3 months are left out, since they haven't had time to buy again; everyone else counts in full. The first output row is the headline for all customers. The `by_cohort_year` rows split the same customers by the year of their first purchase and add up to the headline, which shows how value builds the longer a customer has been around.\n\nIt reads `amazon_retail_purchases`, so organic and ad-driven purchases both count. Revenue is `unit_price * purchase_units_sold`.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block. These are comments and don't change results.",
+        "Open the brand's own AMC instance. There's no ASIN list to fill in; Amazon Retail Purchases already holds only that advertiser's ASINs.",
+        "Set the date range in the AMC UI as wide as Amazon Retail Purchases allows, about 5 years (e.g. 2021-10-21 to 2026-10-20).",
+        "Update the cutoff every run: in `eligible_customers`, change `TIMESTAMP '2026-07-21'` to today minus 3 months. A run on 2026-10-26 uses `'2026-07-26'`.",
+        "Run and export. Read the `all_customers` row as the headline LTV, and the `by_cohort_year` rows as the trend by the year customers first bought.",
+        "When you analyze the output here, the all-customers row is hidden by default so totals aren't counted twice."
+      ],
+      "requirements": [
+        "Paid feature: Amazon Retail Purchases. The query reads `amazon_retail_purchases`. Check Paid features in the AMC console.",
+        "Date range: As wide as the subscription allows. A shorter range makes \"lifetime\" mean only that range.",
+        "Cutoff date: Has to be updated by hand each run. A stale cutoff lets very new customers back in and pulls LTV down slightly.",
+        "Earliest cohort year: Inflated. Customers who also bought before the range starts are counted from their first purchase inside it, so the first year includes long-time customers.",
+        "Revenue: Gross of returns, before COGS and Amazon fees. It's revenue LTV, not profit."
+      ],
+      "useCases": [
+        "Headline LTV for LTV:CAC: Pair the all-customers LTV with blended CAC to show what a new customer is worth over their life with the brand.",
+        "How value builds over time: Older cohort years show where a customer's value ends up; younger ones show how far along the curve recent customers are.",
+        "Set acquisition targets: Use lifetime LTV, with a margin assumption, to set the most the brand can afford to pay for a new customer.",
+        "Cross-check 4-Purchase LTV: Compare against 4-Purchase LTV to see how much value comes after the fourth order."
+      ],
+      "example": {
+        "columns": [
+          "cohort_scope",
+          "cohort_year",
+          "customers",
+          "lifetime_revenue_usd",
+          "avg_lifetime_ltv_usd",
+          "lifetime_units",
+          "lifetime_purchase_ids",
+          "repeat_customers",
+          "avg_active_span_days"
+        ],
+        "rows": [
+          [
+            "all_customers",
+            "null",
+            "819100",
+            "65366500.00",
+            "79.80",
+            "1915624",
+            "1451230",
+            "239800",
+            "313.8"
+          ],
+          [
+            "by_cohort_year",
+            "2021-01-01T00:00:00.000Z",
+            "61200",
+            "9180000.00",
+            "150.00",
+            "205999",
+            "156060",
+            "30600",
+            "410.0"
+          ],
+          [
+            "by_cohort_year",
+            "2022-01-01T00:00:00.000Z",
+            "142800",
+            "15850800.00",
+            "111.00",
+            "407075",
+            "308390",
+            "57100",
+            "520.0"
+          ],
+          [
+            "by_cohort_year",
+            "2023-01-01T00:00:00.000Z",
+            "158300",
+            "14405300.00",
+            "91.00",
+            "400699",
+            "303560",
+            "53800",
+            "430.0"
+          ],
+          [
+            "by_cohort_year",
+            "2024-01-01T00:00:00.000Z",
+            "171500",
+            "12348000.00",
+            "72.00",
+            "384780",
+            "291500",
+            "48000",
+            "310.0"
+          ],
+          [
+            "by_cohort_year",
+            "2025-01-01T00:00:00.000Z",
+            "188900",
+            "9822800.00",
+            "52.00",
+            "364637",
+            "276240",
+            "39700",
+            "170.0"
+          ],
+          [
+            "by_cohort_year",
+            "2026-01-01T00:00:00.000Z",
+            "96400",
+            "3759600.00",
+            "39.00",
+            "152434",
+            "115480",
+            "10600",
+            "45.0"
+          ]
+        ],
+        "note": "Illustrative values, not client data. The all_customers row is the sum of the cohort-year rows."
+      },
+      "tags": [
+        "amazon_retail_purchases",
+        "Paid feature",
+        "LTV",
+        "Cohort year"
+      ],
+      "sql": "-- =====================================================================\n-- TRUE LIFETIME LTV BY COHORT YEAR  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance. It needs the Amazon Retail\n--      Purchases paid feature (amazon_retail_purchases). The table holds\n--      every retail purchase of that advertiser's ASINs, so there is no\n--      ASIN list to fill in.\n--   2. Set the date range in the AMC UI as wide as ARP allows (about\n--      5 years, e.g. 2021-10-21 to 2026-10-20).\n--   3. UPDATE PER RUN: change the cutoff date in eligible_customers to\n--      today minus 3 months (e.g. a run on 2026-10-26 uses '2026-07-26').\n--      Customers whose first purchase is after the cutoff are left out,\n--      because they haven't had time to buy again.\n--   4. Run. The first row (cohort_scope = 'all_customers') is the\n--      headline LTV. The 'by_cohort_year' rows split the same customers\n--      by the year of their first purchase and add up to the headline row.\n--\n-- OUTPUT\n--   customers                customers whose first purchase is before the cutoff\n--   lifetime_revenue_usd     all their purchases in the window ($)\n--   avg_lifetime_ltv_usd     lifetime_revenue_usd / customers\n--   lifetime_units, lifetime_purchase_ids\n--   repeat_customers         customers with a purchase after their first\n--   avg_active_span_days     days from first to last purchase (avg)\n--\n-- NOTES\n--   * All retail purchasers, organic and ad-driven, not ad-attributed only.\n--   * \"First purchase\" is the first one inside the date range. Customers\n--     who also bought before the range start are counted from their first\n--     purchase in the range, so the earliest cohort year is inflated.\n--   * Revenue = unit_price * purchase_units_sold (ARP has no pre-summed\n--     sales column), gross of returns, before COGS and fees.\n-- =====================================================================\n\nWITH\n\n-- 1. One row per customer: first/last purchase and lifetime totals\ncustomer_lifetime AS (\n    SELECT\n        user_id,\n        MIN(purchase_date_utc)                     AS first_purchase_ts,\n        MAX(purchase_date_utc)                     AS last_purchase_ts,\n        SUM(unit_price * purchase_units_sold)      AS lifetime_revenue_usd,\n        SUM(purchase_units_sold)                   AS lifetime_units,\n        COUNT(DISTINCT purchase_id)                AS lifetime_purchase_ids\n    FROM amazon_retail_purchases\n    WHERE user_id IS NOT NULL\n    GROUP BY user_id\n),\n\n-- 2. Drop customers whose first-ever purchase was in the last 3 months\n--    Their purchases from before the cutoff still count in full\neligible_customers AS (\n    SELECT\n        user_id,\n        first_purchase_ts,\n        last_purchase_ts,\n        lifetime_revenue_usd,\n        lifetime_units,\n        lifetime_purchase_ids\n    FROM customer_lifetime\n    WHERE first_purchase_ts < TIMESTAMP '2026-07-21'   -- UPDATE PER RUN: today minus 3 months\n)\n\n-- 3a. All eligible customers: the headline lifetime LTV\nSELECT\n    CAST('all_customers' AS VARCHAR)                         AS cohort_scope,\n    CAST(NULL AS TIMESTAMP)                                  AS cohort_year,\n    COUNT(user_id)                                           AS customers,\n    SUM(lifetime_revenue_usd)                                AS lifetime_revenue_usd,\n    SUM(lifetime_revenue_usd) / COUNT(user_id)               AS avg_lifetime_ltv_usd,\n    SUM(lifetime_units)                                      AS lifetime_units,\n    SUM(lifetime_purchase_ids)                               AS lifetime_purchase_ids,\n    SUM(CASE WHEN last_purchase_ts > first_purchase_ts THEN 1 ELSE 0 END) AS repeat_customers,\n    AVG(SECONDS_BETWEEN(first_purchase_ts, last_purchase_ts)) / 86400.0   AS avg_active_span_days\nFROM eligible_customers\n\nUNION ALL\n\n-- 3b. Same metrics split by the year of each customer's first purchase\nSELECT\n    CAST('by_cohort_year' AS VARCHAR),\n    DATE_TRUNC('YEAR', first_purchase_ts),\n    COUNT(user_id),\n    SUM(lifetime_revenue_usd),\n    SUM(lifetime_revenue_usd) / COUNT(user_id),\n    SUM(lifetime_units),\n    SUM(lifetime_purchase_ids),\n    SUM(CASE WHEN last_purchase_ts > first_purchase_ts THEN 1 ELSE 0 END),\n    AVG(SECONDS_BETWEEN(first_purchase_ts, last_purchase_ts)) / 86400.0\nFROM eligible_customers\nGROUP BY DATE_TRUNC('YEAR', first_purchase_ts)\n",
+      "viz": {
+        "defaults": {
+          "group": "cohort_year",
+          "measure": "ltv",
+          "x": "",
+          "chart": "bar",
+          "top": "all",
+          "dir": "desc"
+        },
+        "chronological": true,
+        "filter": {
+          "col": "cohort_scope",
+          "value": "by_cohort_year",
+          "label": "Cohort-year rows only (hide the all-customers total)"
+        },
+        "hide": [
+          "cohort_scope",
+          "avg_lifetime_ltv_usd"
+        ],
+        "derived": [
+          {
+            "name": "ltv",
+            "label": "Lifetime LTV",
+            "ratio": [
+              "lifetime_revenue_usd",
+              "customers"
+            ],
+            "fmt": "money"
+          },
+          {
+            "name": "repeat_rate",
+            "label": "Repeat rate",
+            "ratio": [
+              "repeat_customers",
+              "customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "name": "orders_per_customer",
+            "label": "Orders per customer",
+            "ratio": [
+              "lifetime_purchase_ids",
+              "customers"
+            ],
+            "fmt": "num2"
+          },
+          {
+            "name": "revenue_per_order",
+            "label": "Revenue per order",
+            "ratio": [
+              "lifetime_revenue_usd",
+              "lifetime_purchase_ids"
+            ],
+            "fmt": "money"
+          }
+        ],
+        "labels": {
+          "lifetime_revenue_usd": "Lifetime revenue",
+          "lifetime_purchase_ids": "Orders",
+          "lifetime_units": "Units",
+          "repeat_customers": "Repeat customers",
+          "avg_active_span_days": "Avg active span (days)",
+          "cohort_year": "Cohort year"
+        },
+        "formats": {
+          "lifetime_revenue_usd": "money"
+        },
+        "kpis": [
+          {
+            "label": "Customers",
+            "sum": "customers",
+            "fmt": "int"
+          },
+          {
+            "label": "Lifetime LTV",
+            "ratio": [
+              "lifetime_revenue_usd",
+              "customers"
+            ],
+            "fmt": "money"
+          },
+          {
+            "label": "Lifetime revenue",
+            "sum": "lifetime_revenue_usd",
+            "fmt": "money"
+          },
+          {
+            "label": "Repeat rate",
+            "ratio": [
+              "repeat_customers",
+              "customers"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          },
+          {
+            "label": "Orders per customer",
+            "ratio": [
+              "lifetime_purchase_ids",
+              "customers"
+            ],
+            "fmt": "num2"
+          },
+          {
+            "label": "Avg active span",
+            "wavg": [
+              "avg_active_span_days",
+              "customers"
+            ],
+            "fmt": "num1",
+            "note": "Days, first to last purchase"
+          }
+        ]
+      },
+      "createdAt": "2026-10-26T18:05:00.000Z",
+      "updatedAt": "2026-10-29T21:09:13.919Z",
+      "author": ""
+    },
+    {
+      "id": "true-nb-roas",
+      "title": "True Non-Branded ROAS",
+      "type": "Path To Purchase Variations",
+      "summary": "Credits non-branded ads for shoppers who met the brand through a non-branded ad and bought after a branded one. Four AMC queries plus a console export, on a clicks-only and an impressions + clicks basis.",
+      "description": "Standard console NB ROAS ignores shoppers who first met the brand through a non-branded ad and later bought after a branded ad. This analysis builds each shopper's path across non-branded (NB) and branded (B) campaigns and credits those sales to non-branded.\n\nEach shopper sits in exactly one of four path groups, based on the order in which they first touched each side: Non-branded only, Non-branded then Branded, Branded then Non-branded, and Branded only. True NB ROAS = sales of the two non-branded-first groups ÷ their ad cost. Branded ROAS is the same from the branded side. Cost covers every ad touch of the shoppers in those paths, branded and non-branded, so the non-branded figure is conservative.\n\nIt runs on two bases. Clicks only (query 2b) counts a shopper in a group only if they clicked an ad there; this is the headline. Impressions + clicks (query 2a) also counts shoppers who only saw an ad, which moves many more shoppers into Non-branded then Branded. Label which basis a number comes from every time.\n\nCampaign groups come from the `| NB |` or `| B |` token in the campaign name. A campaign with neither is Other (catch-all) and is treated as branded, the cautious choice for non-branded. Query 1 lists the groups, query 3 gives per-campaign performance, and a unified reporting search term export gives the console NB ROAS to compare against.",
+      "howTo": [
+        "Check the naming first: every non-branded campaign needs `| NB |` and every branded campaign `| B |` in its name, with spaces around the token. Run query 1 and look at anything that lands in Other.",
+        "Open the brand's own AMC instance and set the date picker to the report range (usually one calendar month). Use the same range for all four queries.",
+        "Run each query from the SQL section and export the result as CSV with the file name shown: `campaign_cost.csv`, `paths_impressions.csv`, `paths_clicks.csv`, `campaign_perf.csv`. Paste the SQL as written; don't rename aliases.",
+        "Console export (not AMC): in Amazon Ads unified reporting, run a Search term report, daily, same dates, all ad products, with Campaign name, Search term, Total cost, Sales, Purchases, Purchases (new to brand), Clicks and Advertised product brand. Save it as `console_terms.csv`. If it spans several marketplaces, keep only the account's currency.",
+        "Check the console file's first and last dates match the AMC range, and that console spend is within about 1% of the cost in `campaign_cost.csv`.",
+        "Query 3 can return rows with a blank campaign name. Match them to query 1 by spend and clicks, and flag them in the report.",
+        "Drop `paths_clicks.csv` into Analyze output below for the headline numbers (True NB ROAS, Branded ROAS, cost per NTB customer). Then drop in `paths_impressions.csv` to see the impressions + clicks basis.",
+        "For the full client PDF, follow the PLTFRM True NB ROAS build instructions with all five files. Console NB ROAS = Sales ÷ Total cost for campaigns with `| NB |`, all ad types (SP, SB and SD). Never show a Sponsored Products only figure, and never call anything \"Total ROAS\"."
+      ],
+      "requirements": [
+        "Paid features: None. All four queries use standard tables: `sponsored_ads_traffic`, `amazon_attributed_events_by_traffic_time`, `amazon_attributed_events_by_conversion_time`, `dsp_impressions` and `dsp_clicks`.",
+        "Campaign naming: Groups come from the `| NB |` and `| B |` tokens in campaign names. Without them every campaign lands in Other and the analysis falls apart.",
+        "Console export: The unified reporting search term report (not AMC) for the same dates, saved as `console_terms.csv`. Needed for console NB ROAS and catch-all search term analysis.",
+        "Same date range: All four queries and the console export must cover the same window. The campaign exports have no date column, so check their spend is within about 0.2% of the path total.",
+        "Two bases, labeled: Clicks only and impressions + clicks give different answers. Never put both in one table without a label.",
+        "Optional: A whole-account new vs repeat customers file (`new_vs_repeat.xlsx`) for the page-one whole-account table. It's a different definition from NTB customers from ads, so keep the titles distinct.",
+        "Sample size: Non-branded then Branded on the clicks basis can be a few hundred buyers. Differences of a few hundredths of ROAS are within noise."
+      ],
+      "useCases": [
+        "Defend non-branded spend: Show that non-branded ROAS is higher once shoppers who started on a non-branded ad and finished on a branded one are credited to non-branded.",
+        "Set non-branded targets: Use True NB ROAS and cost per NTB customer on non-branded-first paths as the yardstick for non-branded campaigns, instead of the console's last-touch figure.",
+        "Budget split between branded and non-branded: Compare where path spend goes against where new-to-brand buyers come from.",
+        "Client reporting: Feed the four exports and the console file into the True NB ROAS report build for a client-ready PDF.",
+        "Catch-all clean-up: Query 1 surfaces campaigns with malformed names (missing or unspaced NB/B tokens) that sit in Other."
+      ],
+      "example": {
+        "columns": [
+          "path",
+          "path_occurrences",
+          "total_impressions",
+          "total_clicks",
+          "total_cost",
+          "users_that_purchased",
+          "purchases",
+          "sales_amount",
+          "user_purchase_rate",
+          "ntb_users_that_purchased",
+          "ntb_purchases",
+          "ntb_sales_amount",
+          "ntb_percentage"
+        ],
+        "rows": [
+          [
+            "[[1, NB]]",
+            "61200",
+            "288400",
+            "25110",
+            "51420.35",
+            "5180",
+            "5710",
+            "96410.20",
+            "0.0846",
+            "3940",
+            "4290",
+            "72105.80",
+            "0.7606"
+          ],
+          [
+            "[[1, B]]",
+            "14850",
+            "121300",
+            "7620",
+            "8640.10",
+            "2160",
+            "2480",
+            "56210.45",
+            "0.1455",
+            "1310",
+            "1450",
+            "30880.15",
+            "0.6065"
+          ],
+          [
+            "[[1, NB], [2, B]]",
+            "2410",
+            "64220",
+            "3180",
+            "4870.60",
+            "310",
+            "362",
+            "8420.90",
+            "0.1286",
+            "214",
+            "244",
+            "5610.35",
+            "0.6903"
+          ],
+          [
+            "[[1, B], [2, NB]]",
+            "1380",
+            "38760",
+            "1720",
+            "2190.25",
+            "168",
+            "191",
+            "4460.10",
+            "0.1217",
+            "114",
+            "128",
+            "2905.40",
+            "0.6786"
+          ],
+          [
+            "[[1, NB], [2, Other]]",
+            "640",
+            "11280",
+            "540",
+            "915.40",
+            "52",
+            "58",
+            "1190.75",
+            "0.0813",
+            "37",
+            "41",
+            "830.10",
+            "0.7115"
+          ],
+          [
+            "[[1, B], [2, Other], [3, NB]]",
+            "210",
+            "6480",
+            "260",
+            "402.15",
+            "21",
+            "24",
+            "468.30",
+            "0.1000",
+            "14",
+            "16",
+            "305.60",
+            "0.6667"
+          ]
+        ],
+        "note": "Illustrative paths_clicks.csv rows, not client data. Paths read left to right in time order; Other is treated as branded."
+      },
+      "tags": [
+        "Path to conversion",
+        "No paid features",
+        "NB vs Branded",
+        "4 queries + console export"
+      ],
+      "sql": "-- =====================================================================\n-- TRUE NB ROAS  |  CLASSIFICATION\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as campaign_cost.csv\n-- Lists every campaign with its group, impressions, clicks and cost.\n-- Run it first. A campaign that should be NB or B but lands in Other has a\n-- malformed name (the token needs spaces around it, like | NB |).\n-- =====================================================================\n\nSELECT\ncampaign,\nCASE\nWHEN LOWER(campaign) LIKE '%| nb |%' THEN 'NB'\nWHEN LOWER(campaign) LIKE '%| b |%' THEN 'B'\nELSE 'Other'\nEND AS campaign_group,\nSUM(impressions) AS total_impressions,\nSUM(clicks) AS total_clicks,\nSUM(spend) / 1e8 AS total_cost\nFROM\nsponsored_ads_traffic\nWHERE\nuser_id IS NOT NULL\nGROUP BY\n1,\n2\n\n\n-- =====================================================================\n-- TRUE NB ROAS  |  PATHS, IMPRESSIONS + CLICKS\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as paths_impressions.csv\n-- Each shopper's ordered path across NB and B campaigns, counting a\n-- shopper in a group if they clicked OR only saw an ad there.\n-- =====================================================================\n\nWITH\nppc_clicks AS (\nSELECT\nuser_id,\nCASE\nWHEN LOWER(campaign) LIKE '%| nb |%' THEN 'NB'\nWHEN LOWER(campaign) LIKE '%| b |%' THEN 'B'\nELSE 'Other'\nEND AS campaign_group,\nMIN(event_dt) AS click_dt_first,\nMAX(event_dt) AS click_dt_last,\nSUM(clicks) AS total_clicks,\nSUM(impressions) AS total_impressions,\nSUM(spend) AS total_spend\nFROM\nsponsored_ads_traffic\nWHERE\nuser_id IS NOT NULL\nGROUP BY\n1,\n2\n),\nconverted AS (\nSELECT\nuser_id,\nMAX(conversion_event_dt) AS conversion_event_dt_last,\nSUM(total_purchases) AS purchases,\nSUM(total_product_sales) AS product_sales,\nMAX(\nCASE\nWHEN new_to_brand = TRUE THEN 1\nELSE 0\nEND\n) AS ntb_cust,\nSUM(new_to_brand_total_purchases) AS ntb_purchases,\nSUM(new_to_brand_total_product_sales) AS ntb_product_sales\nFROM\namazon_attributed_events_by_traffic_time\nWHERE\ntotal_purchases > 0\nAND user_id IS NOT NULL\nGROUP BY\n1\n),\nfilter_clicks AS (\nSELECT\nc.user_id AS click_user_id,\ncv.user_id AS pur_user_id,\nc.campaign_group,\nc.total_clicks,\nc.total_impressions,\nc.click_dt_first,\nc.click_dt_last,\nc.total_spend / 1e8 AS total_cost,\nCOALESCE(cv.purchases, 0) AS purchases,\nCOALESCE(cv.product_sales, 0) AS product_sales,\nCOALESCE(cv.ntb_cust, 0) AS ntb_cust,\nCOALESCE(cv.ntb_purchases, 0) AS ntb_purchases,\nCOALESCE(cv.ntb_product_sales, 0) AS ntb_product_sales,\ncv.conversion_event_dt_last\nFROM\nppc_clicks AS c\nLEFT JOIN converted AS cv ON cv.user_id = c.user_id\nWHERE\n(\ncv.user_id IS NOT NULL\nAND c.click_dt_first < cv.conversion_event_dt_last\n)\nOR cv.user_id IS NULL\n),\nranked AS (\nSELECT\nNAMED_ROW (\n'order',\nROW_NUMBER() OVER (\nPARTITION BY\nclick_user_id\nORDER BY\nclick_dt_first,\nclick_dt_last DESC,\ncampaign_group\n),\n'campaign_group',\ncampaign_group\n) AS campaign_order,\nclick_user_id\nFROM\nfilter_clicks\nWHERE\nclick_user_id IS NOT NULL\n),\nassembled AS (\nSELECT\nARRAY_SORT (COLLECT(DISTINCT campaign_order)) AS path,\nimp_user_id\nFROM\n(\nSELECT\ncampaign_order,\nclick_user_id AS imp_user_id\nFROM\nranked\n)\nGROUP BY\nimp_user_id\n),\nfilter_clicks_dedupe AS (\nSELECT\nclick_user_id AS imp_user_id,\nSUM(total_clicks) AS total_clicks,\nSUM(total_impressions) AS total_impressions,\nSUM(total_cost) AS total_cost,\nMAX(\nCASE\nWHEN pur_user_id IS NOT NULL THEN 1\nELSE 0\nEND\n) AS converted,\nMAX(purchases) AS purchases,\nMAX(product_sales) AS product_sales,\nMAX(ntb_cust) AS ntb_cust,\nMAX(ntb_purchases) AS ntb_purchases,\nMAX(ntb_product_sales) AS ntb_product_sales\nFROM\nfilter_clicks\nGROUP BY\nclick_user_id\n),\nassembled_with_metrics AS (\nSELECT\na.path,\nCOUNT(DISTINCT a.imp_user_id) AS reach,\nSUM(b.total_clicks) AS total_clicks,\nSUM(b.total_impressions) AS total_impressions,\nSUM(b.total_cost) AS total_cost,\nSUM(b.converted) AS users_that_purchased,\nSUM(b.purchases) AS purchases,\nSUM(b.product_sales) AS sales_amount,\nSUM(b.ntb_cust) AS ntb_users_that_purchased,\nSUM(b.ntb_purchases) AS ntb_purchases,\nSUM(b.ntb_product_sales) AS ntb_sales_amount\nFROM\nassembled AS a\nLEFT JOIN filter_clicks_dedupe AS b ON a.imp_user_id = b.imp_user_id\nGROUP BY\npath\n)\nSELECT\npath,\nreach AS path_occurrences,\ntotal_impressions,\ntotal_clicks,\ntotal_cost,\nusers_that_purchased,\npurchases,\nsales_amount,\nCAST(users_that_purchased AS DOUBLE) / NULLIF(reach, 0) AS user_purchase_rate,\nntb_users_that_purchased,\nntb_purchases,\nntb_sales_amount,\nCAST(ntb_users_that_purchased AS DOUBLE) / NULLIF(users_that_purchased, 0) AS ntb_percentage\nFROM\nassembled_with_metrics\nWHERE\nusers_that_purchased > 0\n\n\n-- =====================================================================\n-- TRUE NB ROAS  |  PATHS, CLICKS ONLY\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as paths_clicks.csv\n-- Same as 2a, but a shopper counts in a group only if they CLICKED an\n-- ad there. Touch order uses click dates. Headline basis.\n-- =====================================================================\n\nWITH\nppc_clicks AS (\nSELECT\nuser_id,\nCASE\nWHEN LOWER(campaign) LIKE '%| nb |%' THEN 'NB'\nWHEN LOWER(campaign) LIKE '%| b |%' THEN 'B'\nELSE 'Other'\nEND AS campaign_group,\nMIN(CASE WHEN clicks > 0 THEN event_dt END) AS click_dt_first,\nMAX(CASE WHEN clicks > 0 THEN event_dt END) AS click_dt_last,\nSUM(clicks) AS total_clicks,\nSUM(impressions) AS total_impressions,\nSUM(spend) AS total_spend\nFROM\nsponsored_ads_traffic\nWHERE\nuser_id IS NOT NULL\nGROUP BY\n1,\n2\nHAVING\nSUM(clicks) > 0\n),\nconverted AS (\nSELECT\nuser_id,\nMAX(conversion_event_dt) AS conversion_event_dt_last,\nSUM(total_purchases) AS purchases,\nSUM(total_product_sales) AS product_sales,\nMAX(\nCASE\nWHEN new_to_brand = TRUE THEN 1\nELSE 0\nEND\n) AS ntb_cust,\nSUM(new_to_brand_total_purchases) AS ntb_purchases,\nSUM(new_to_brand_total_product_sales) AS ntb_product_sales\nFROM\namazon_attributed_events_by_traffic_time\nWHERE\ntotal_purchases > 0\nAND user_id IS NOT NULL\nGROUP BY\n1\n),\nfilter_clicks AS (\nSELECT\nc.user_id AS click_user_id,\ncv.user_id AS pur_user_id,\nc.campaign_group,\nc.total_clicks,\nc.total_impressions,\nc.click_dt_first,\nc.click_dt_last,\nc.total_spend / 1e8 AS total_cost,\nCOALESCE(cv.purchases, 0) AS purchases,\nCOALESCE(cv.product_sales, 0) AS product_sales,\nCOALESCE(cv.ntb_cust, 0) AS ntb_cust,\nCOALESCE(cv.ntb_purchases, 0) AS ntb_purchases,\nCOALESCE(cv.ntb_product_sales, 0) AS ntb_product_sales,\ncv.conversion_event_dt_last\nFROM\nppc_clicks AS c\nLEFT JOIN converted AS cv ON cv.user_id = c.user_id\nWHERE\n(\ncv.user_id IS NOT NULL\nAND c.click_dt_first < cv.conversion_event_dt_last\n)\nOR cv.user_id IS NULL\n),\nranked AS (\nSELECT\nNAMED_ROW (\n'order',\nROW_NUMBER() OVER (\nPARTITION BY\nclick_user_id\nORDER BY\nclick_dt_first,\nclick_dt_last DESC,\ncampaign_group\n),\n'campaign_group',\ncampaign_group\n) AS campaign_order,\nclick_user_id\nFROM\nfilter_clicks\nWHERE\nclick_user_id IS NOT NULL\n),\nassembled AS (\nSELECT\nARRAY_SORT (COLLECT(DISTINCT campaign_order)) AS path,\nimp_user_id\nFROM\n(\nSELECT\ncampaign_order,\nclick_user_id AS imp_user_id\nFROM\nranked\n)\nGROUP BY\nimp_user_id\n),\nfilter_clicks_dedupe AS (\nSELECT\nclick_user_id AS imp_user_id,\nSUM(total_clicks) AS total_clicks,\nSUM(total_impressions) AS total_impressions,\nSUM(total_cost) AS total_cost,\nMAX(\nCASE\nWHEN pur_user_id IS NOT NULL THEN 1\nELSE 0\nEND\n) AS converted,\nMAX(purchases) AS purchases,\nMAX(product_sales) AS product_sales,\nMAX(ntb_cust) AS ntb_cust,\nMAX(ntb_purchases) AS ntb_purchases,\nMAX(ntb_product_sales) AS ntb_product_sales\nFROM\nfilter_clicks\nGROUP BY\nclick_user_id\n),\nassembled_with_metrics AS (\nSELECT\na.path,\nCOUNT(DISTINCT a.imp_user_id) AS reach,\nSUM(b.total_clicks) AS total_clicks,\nSUM(b.total_impressions) AS total_impressions,\nSUM(b.total_cost) AS total_cost,\nSUM(b.converted) AS users_that_purchased,\nSUM(b.purchases) AS purchases,\nSUM(b.product_sales) AS sales_amount,\nSUM(b.ntb_cust) AS ntb_users_that_purchased,\nSUM(b.ntb_purchases) AS ntb_purchases,\nSUM(b.ntb_product_sales) AS ntb_sales_amount\nFROM\nassembled AS a\nLEFT JOIN filter_clicks_dedupe AS b ON a.imp_user_id = b.imp_user_id\nGROUP BY\npath\n)\nSELECT\npath,\nreach AS path_occurrences,\ntotal_impressions,\ntotal_clicks,\ntotal_cost,\nusers_that_purchased,\npurchases,\nsales_amount,\nCAST(users_that_purchased AS DOUBLE) / NULLIF(reach, 0) AS user_purchase_rate,\nntb_users_that_purchased,\nntb_purchases,\nntb_sales_amount,\nCAST(ntb_users_that_purchased AS DOUBLE) / NULLIF(users_that_purchased, 0) AS ntb_percentage\nFROM\nassembled_with_metrics\nWHERE\nusers_that_purchased > 0\n\n\n-- =====================================================================\n-- TRUE NB ROAS  |  NTB BY CAMPAIGN\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as campaign_perf.csv\n-- Per campaign and ad type: spend, sales, clicks, CPC, ROAS, NTB sales,\n-- NTB ROAS, NTB purchasers, CAC and CVR. Sponsored Ads and DSP.\n-- Some rows can come back with a blank campaign name; match them to\n-- query 1 by spend and clicks.\n-- =====================================================================\n\nWITH\n-- Attributed purchases/sales/NTB, both SA and DSP, at order/campaign grain\nattributed AS (\nSELECT\ncampaign_id_string,\ncampaign,\nad_product_type,\nSUM(total_purchases) AS total_purchases,\nSUM(new_to_brand_total_purchases) AS ntb_purchases,\nSUM(total_product_sales) AS total_sales,\nSUM(new_to_brand_total_product_sales) AS ntb_sales,\nCOUNT(DISTINCT CASE WHEN new_to_brand = true THEN user_id ELSE NULL END) AS ntb_purchasers\nFROM amazon_attributed_events_by_conversion_time\nWHERE total_purchases > 0\nAND user_id IS NOT NULL\nGROUP BY campaign_id_string, campaign, ad_product_type\n),\n-- SA spend + clicks (microcents -> USD)\nsa_spend AS (\nSELECT\ncampaign_id_string,\nSUM(spend) / 100000000.0 AS spend_usd,\nSUM(clicks) AS total_clicks\nFROM sponsored_ads_traffic\nGROUP BY campaign_id_string\n),\n-- DSP spend (millicents -> USD), keyed by order (campaign_id_string)\ndsp_spend AS (\nSELECT\ncampaign_id_string,\nSUM(total_cost) / 100000.0 AS spend_usd\nFROM dsp_impressions\nGROUP BY campaign_id_string\n),\n-- DSP clicks, same key\ndsp_clicks_agg AS (\nSELECT\ncampaign_id_string,\nSUM(clicks) AS total_clicks\nFROM dsp_clicks\nGROUP BY campaign_id_string\n),\nspend_combined AS (\nSELECT campaign_id_string, spend_usd, total_clicks FROM sa_spend\nUNION ALL\nSELECT\nds.campaign_id_string,\nds.spend_usd,\nCOALESCE(dc.total_clicks, 0) AS total_clicks\nFROM dsp_spend ds\nLEFT JOIN dsp_clicks_agg dc ON ds.campaign_id_string = dc.campaign_id_string\n)\nSELECT\na.campaign AS campaign_name,\na.ad_product_type AS ad_type,\nROUND(s.spend_usd, 2) AS spend,\nROUND(a.total_sales, 2) AS sales,\ns.total_clicks AS clicks,\nROUND(s.spend_usd / NULLIF(CAST(s.total_clicks AS DOUBLE), 0), 2) AS cpc,\nROUND(a.total_sales / NULLIF(s.spend_usd, 0), 2) AS roas,\nROUND(a.ntb_sales, 2) AS ntb_sales,\nROUND(a.ntb_sales / NULLIF(s.spend_usd, 0), 2) AS ntb_roas,\nCAST(a.ntb_purchasers AS BIGINT) AS ntb_purchasers,\nROUND(s.spend_usd / NULLIF(a.ntb_purchasers, 0), 2) AS cac,\nROUND(a.total_purchases / NULLIF(CAST(s.total_clicks AS DOUBLE), 0), 4) AS cvr\nFROM attributed a\nLEFT JOIN spend_combined s ON a.campaign_id_string = s.campaign_id_string\n",
+      "sqlParts": [
+        {
+          "name": "1. Classification",
+          "file": "campaign_cost.csv",
+          "note": "Every Sponsored Ads campaign with its group (NB, B or Other, from the `| NB |` or `| B |` token in the name), impressions, clicks and cost. Run this first: anything in Other should be a real catch-all campaign.",
+          "sql": "-- =====================================================================\n-- TRUE NB ROAS  |  CLASSIFICATION\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as campaign_cost.csv\n-- Lists every campaign with its group, impressions, clicks and cost.\n-- Run it first. A campaign that should be NB or B but lands in Other has a\n-- malformed name (the token needs spaces around it, like | NB |).\n-- =====================================================================\n\nSELECT\ncampaign,\nCASE\nWHEN LOWER(campaign) LIKE '%| nb |%' THEN 'NB'\nWHEN LOWER(campaign) LIKE '%| b |%' THEN 'B'\nELSE 'Other'\nEND AS campaign_group,\nSUM(impressions) AS total_impressions,\nSUM(clicks) AS total_clicks,\nSUM(spend) / 1e8 AS total_cost\nFROM\nsponsored_ads_traffic\nWHERE\nuser_id IS NOT NULL\nGROUP BY\n1,\n2\n"
+        },
+        {
+          "name": "2a. Paths, impressions + clicks",
+          "file": "paths_impressions.csv",
+          "note": "Each shopper's ordered path across NB and B campaigns. A shopper counts in a group if they clicked or only saw an ad there. Returns spend, buyers, sales and NTB per path.",
+          "sql": "-- =====================================================================\n-- TRUE NB ROAS  |  PATHS, IMPRESSIONS + CLICKS\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as paths_impressions.csv\n-- Each shopper's ordered path across NB and B campaigns, counting a\n-- shopper in a group if they clicked OR only saw an ad there.\n-- =====================================================================\n\nWITH\nppc_clicks AS (\nSELECT\nuser_id,\nCASE\nWHEN LOWER(campaign) LIKE '%| nb |%' THEN 'NB'\nWHEN LOWER(campaign) LIKE '%| b |%' THEN 'B'\nELSE 'Other'\nEND AS campaign_group,\nMIN(event_dt) AS click_dt_first,\nMAX(event_dt) AS click_dt_last,\nSUM(clicks) AS total_clicks,\nSUM(impressions) AS total_impressions,\nSUM(spend) AS total_spend\nFROM\nsponsored_ads_traffic\nWHERE\nuser_id IS NOT NULL\nGROUP BY\n1,\n2\n),\nconverted AS (\nSELECT\nuser_id,\nMAX(conversion_event_dt) AS conversion_event_dt_last,\nSUM(total_purchases) AS purchases,\nSUM(total_product_sales) AS product_sales,\nMAX(\nCASE\nWHEN new_to_brand = TRUE THEN 1\nELSE 0\nEND\n) AS ntb_cust,\nSUM(new_to_brand_total_purchases) AS ntb_purchases,\nSUM(new_to_brand_total_product_sales) AS ntb_product_sales\nFROM\namazon_attributed_events_by_traffic_time\nWHERE\ntotal_purchases > 0\nAND user_id IS NOT NULL\nGROUP BY\n1\n),\nfilter_clicks AS (\nSELECT\nc.user_id AS click_user_id,\ncv.user_id AS pur_user_id,\nc.campaign_group,\nc.total_clicks,\nc.total_impressions,\nc.click_dt_first,\nc.click_dt_last,\nc.total_spend / 1e8 AS total_cost,\nCOALESCE(cv.purchases, 0) AS purchases,\nCOALESCE(cv.product_sales, 0) AS product_sales,\nCOALESCE(cv.ntb_cust, 0) AS ntb_cust,\nCOALESCE(cv.ntb_purchases, 0) AS ntb_purchases,\nCOALESCE(cv.ntb_product_sales, 0) AS ntb_product_sales,\ncv.conversion_event_dt_last\nFROM\nppc_clicks AS c\nLEFT JOIN converted AS cv ON cv.user_id = c.user_id\nWHERE\n(\ncv.user_id IS NOT NULL\nAND c.click_dt_first < cv.conversion_event_dt_last\n)\nOR cv.user_id IS NULL\n),\nranked AS (\nSELECT\nNAMED_ROW (\n'order',\nROW_NUMBER() OVER (\nPARTITION BY\nclick_user_id\nORDER BY\nclick_dt_first,\nclick_dt_last DESC,\ncampaign_group\n),\n'campaign_group',\ncampaign_group\n) AS campaign_order,\nclick_user_id\nFROM\nfilter_clicks\nWHERE\nclick_user_id IS NOT NULL\n),\nassembled AS (\nSELECT\nARRAY_SORT (COLLECT(DISTINCT campaign_order)) AS path,\nimp_user_id\nFROM\n(\nSELECT\ncampaign_order,\nclick_user_id AS imp_user_id\nFROM\nranked\n)\nGROUP BY\nimp_user_id\n),\nfilter_clicks_dedupe AS (\nSELECT\nclick_user_id AS imp_user_id,\nSUM(total_clicks) AS total_clicks,\nSUM(total_impressions) AS total_impressions,\nSUM(total_cost) AS total_cost,\nMAX(\nCASE\nWHEN pur_user_id IS NOT NULL THEN 1\nELSE 0\nEND\n) AS converted,\nMAX(purchases) AS purchases,\nMAX(product_sales) AS product_sales,\nMAX(ntb_cust) AS ntb_cust,\nMAX(ntb_purchases) AS ntb_purchases,\nMAX(ntb_product_sales) AS ntb_product_sales\nFROM\nfilter_clicks\nGROUP BY\nclick_user_id\n),\nassembled_with_metrics AS (\nSELECT\na.path,\nCOUNT(DISTINCT a.imp_user_id) AS reach,\nSUM(b.total_clicks) AS total_clicks,\nSUM(b.total_impressions) AS total_impressions,\nSUM(b.total_cost) AS total_cost,\nSUM(b.converted) AS users_that_purchased,\nSUM(b.purchases) AS purchases,\nSUM(b.product_sales) AS sales_amount,\nSUM(b.ntb_cust) AS ntb_users_that_purchased,\nSUM(b.ntb_purchases) AS ntb_purchases,\nSUM(b.ntb_product_sales) AS ntb_sales_amount\nFROM\nassembled AS a\nLEFT JOIN filter_clicks_dedupe AS b ON a.imp_user_id = b.imp_user_id\nGROUP BY\npath\n)\nSELECT\npath,\nreach AS path_occurrences,\ntotal_impressions,\ntotal_clicks,\ntotal_cost,\nusers_that_purchased,\npurchases,\nsales_amount,\nCAST(users_that_purchased AS DOUBLE) / NULLIF(reach, 0) AS user_purchase_rate,\nntb_users_that_purchased,\nntb_purchases,\nntb_sales_amount,\nCAST(ntb_users_that_purchased AS DOUBLE) / NULLIF(users_that_purchased, 0) AS ntb_percentage\nFROM\nassembled_with_metrics\nWHERE\nusers_that_purchased > 0\n"
+        },
+        {
+          "name": "2b. Paths, clicks only",
+          "file": "paths_clicks.csv",
+          "note": "Same as 2a, but a shopper counts in a group only if they clicked an ad there, and order uses click dates. This is the headline basis.",
+          "sql": "-- =====================================================================\n-- TRUE NB ROAS  |  PATHS, CLICKS ONLY\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as paths_clicks.csv\n-- Same as 2a, but a shopper counts in a group only if they CLICKED an\n-- ad there. Touch order uses click dates. Headline basis.\n-- =====================================================================\n\nWITH\nppc_clicks AS (\nSELECT\nuser_id,\nCASE\nWHEN LOWER(campaign) LIKE '%| nb |%' THEN 'NB'\nWHEN LOWER(campaign) LIKE '%| b |%' THEN 'B'\nELSE 'Other'\nEND AS campaign_group,\nMIN(CASE WHEN clicks > 0 THEN event_dt END) AS click_dt_first,\nMAX(CASE WHEN clicks > 0 THEN event_dt END) AS click_dt_last,\nSUM(clicks) AS total_clicks,\nSUM(impressions) AS total_impressions,\nSUM(spend) AS total_spend\nFROM\nsponsored_ads_traffic\nWHERE\nuser_id IS NOT NULL\nGROUP BY\n1,\n2\nHAVING\nSUM(clicks) > 0\n),\nconverted AS (\nSELECT\nuser_id,\nMAX(conversion_event_dt) AS conversion_event_dt_last,\nSUM(total_purchases) AS purchases,\nSUM(total_product_sales) AS product_sales,\nMAX(\nCASE\nWHEN new_to_brand = TRUE THEN 1\nELSE 0\nEND\n) AS ntb_cust,\nSUM(new_to_brand_total_purchases) AS ntb_purchases,\nSUM(new_to_brand_total_product_sales) AS ntb_product_sales\nFROM\namazon_attributed_events_by_traffic_time\nWHERE\ntotal_purchases > 0\nAND user_id IS NOT NULL\nGROUP BY\n1\n),\nfilter_clicks AS (\nSELECT\nc.user_id AS click_user_id,\ncv.user_id AS pur_user_id,\nc.campaign_group,\nc.total_clicks,\nc.total_impressions,\nc.click_dt_first,\nc.click_dt_last,\nc.total_spend / 1e8 AS total_cost,\nCOALESCE(cv.purchases, 0) AS purchases,\nCOALESCE(cv.product_sales, 0) AS product_sales,\nCOALESCE(cv.ntb_cust, 0) AS ntb_cust,\nCOALESCE(cv.ntb_purchases, 0) AS ntb_purchases,\nCOALESCE(cv.ntb_product_sales, 0) AS ntb_product_sales,\ncv.conversion_event_dt_last\nFROM\nppc_clicks AS c\nLEFT JOIN converted AS cv ON cv.user_id = c.user_id\nWHERE\n(\ncv.user_id IS NOT NULL\nAND c.click_dt_first < cv.conversion_event_dt_last\n)\nOR cv.user_id IS NULL\n),\nranked AS (\nSELECT\nNAMED_ROW (\n'order',\nROW_NUMBER() OVER (\nPARTITION BY\nclick_user_id\nORDER BY\nclick_dt_first,\nclick_dt_last DESC,\ncampaign_group\n),\n'campaign_group',\ncampaign_group\n) AS campaign_order,\nclick_user_id\nFROM\nfilter_clicks\nWHERE\nclick_user_id IS NOT NULL\n),\nassembled AS (\nSELECT\nARRAY_SORT (COLLECT(DISTINCT campaign_order)) AS path,\nimp_user_id\nFROM\n(\nSELECT\ncampaign_order,\nclick_user_id AS imp_user_id\nFROM\nranked\n)\nGROUP BY\nimp_user_id\n),\nfilter_clicks_dedupe AS (\nSELECT\nclick_user_id AS imp_user_id,\nSUM(total_clicks) AS total_clicks,\nSUM(total_impressions) AS total_impressions,\nSUM(total_cost) AS total_cost,\nMAX(\nCASE\nWHEN pur_user_id IS NOT NULL THEN 1\nELSE 0\nEND\n) AS converted,\nMAX(purchases) AS purchases,\nMAX(product_sales) AS product_sales,\nMAX(ntb_cust) AS ntb_cust,\nMAX(ntb_purchases) AS ntb_purchases,\nMAX(ntb_product_sales) AS ntb_product_sales\nFROM\nfilter_clicks\nGROUP BY\nclick_user_id\n),\nassembled_with_metrics AS (\nSELECT\na.path,\nCOUNT(DISTINCT a.imp_user_id) AS reach,\nSUM(b.total_clicks) AS total_clicks,\nSUM(b.total_impressions) AS total_impressions,\nSUM(b.total_cost) AS total_cost,\nSUM(b.converted) AS users_that_purchased,\nSUM(b.purchases) AS purchases,\nSUM(b.product_sales) AS sales_amount,\nSUM(b.ntb_cust) AS ntb_users_that_purchased,\nSUM(b.ntb_purchases) AS ntb_purchases,\nSUM(b.ntb_product_sales) AS ntb_sales_amount\nFROM\nassembled AS a\nLEFT JOIN filter_clicks_dedupe AS b ON a.imp_user_id = b.imp_user_id\nGROUP BY\npath\n)\nSELECT\npath,\nreach AS path_occurrences,\ntotal_impressions,\ntotal_clicks,\ntotal_cost,\nusers_that_purchased,\npurchases,\nsales_amount,\nCAST(users_that_purchased AS DOUBLE) / NULLIF(reach, 0) AS user_purchase_rate,\nntb_users_that_purchased,\nntb_purchases,\nntb_sales_amount,\nCAST(ntb_users_that_purchased AS DOUBLE) / NULLIF(users_that_purchased, 0) AS ntb_percentage\nFROM\nassembled_with_metrics\nWHERE\nusers_that_purchased > 0\n"
+        },
+        {
+          "name": "3. NTB by campaign",
+          "file": "campaign_perf.csv",
+          "note": "Per campaign and ad type: spend, sales, clicks, CPC, ROAS, NTB sales, NTB ROAS, NTB purchasers, CAC and conversion rate, for Sponsored Ads and DSP.",
+          "sql": "-- =====================================================================\n-- TRUE NB ROAS  |  NTB BY CAMPAIGN\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- Save the result as campaign_perf.csv\n-- Per campaign and ad type: spend, sales, clicks, CPC, ROAS, NTB sales,\n-- NTB ROAS, NTB purchasers, CAC and CVR. Sponsored Ads and DSP.\n-- Some rows can come back with a blank campaign name; match them to\n-- query 1 by spend and clicks.\n-- =====================================================================\n\nWITH\n-- Attributed purchases/sales/NTB, both SA and DSP, at order/campaign grain\nattributed AS (\nSELECT\ncampaign_id_string,\ncampaign,\nad_product_type,\nSUM(total_purchases) AS total_purchases,\nSUM(new_to_brand_total_purchases) AS ntb_purchases,\nSUM(total_product_sales) AS total_sales,\nSUM(new_to_brand_total_product_sales) AS ntb_sales,\nCOUNT(DISTINCT CASE WHEN new_to_brand = true THEN user_id ELSE NULL END) AS ntb_purchasers\nFROM amazon_attributed_events_by_conversion_time\nWHERE total_purchases > 0\nAND user_id IS NOT NULL\nGROUP BY campaign_id_string, campaign, ad_product_type\n),\n-- SA spend + clicks (microcents -> USD)\nsa_spend AS (\nSELECT\ncampaign_id_string,\nSUM(spend) / 100000000.0 AS spend_usd,\nSUM(clicks) AS total_clicks\nFROM sponsored_ads_traffic\nGROUP BY campaign_id_string\n),\n-- DSP spend (millicents -> USD), keyed by order (campaign_id_string)\ndsp_spend AS (\nSELECT\ncampaign_id_string,\nSUM(total_cost) / 100000.0 AS spend_usd\nFROM dsp_impressions\nGROUP BY campaign_id_string\n),\n-- DSP clicks, same key\ndsp_clicks_agg AS (\nSELECT\ncampaign_id_string,\nSUM(clicks) AS total_clicks\nFROM dsp_clicks\nGROUP BY campaign_id_string\n),\nspend_combined AS (\nSELECT campaign_id_string, spend_usd, total_clicks FROM sa_spend\nUNION ALL\nSELECT\nds.campaign_id_string,\nds.spend_usd,\nCOALESCE(dc.total_clicks, 0) AS total_clicks\nFROM dsp_spend ds\nLEFT JOIN dsp_clicks_agg dc ON ds.campaign_id_string = dc.campaign_id_string\n)\nSELECT\na.campaign AS campaign_name,\na.ad_product_type AS ad_type,\nROUND(s.spend_usd, 2) AS spend,\nROUND(a.total_sales, 2) AS sales,\ns.total_clicks AS clicks,\nROUND(s.spend_usd / NULLIF(CAST(s.total_clicks AS DOUBLE), 0), 2) AS cpc,\nROUND(a.total_sales / NULLIF(s.spend_usd, 0), 2) AS roas,\nROUND(a.ntb_sales, 2) AS ntb_sales,\nROUND(a.ntb_sales / NULLIF(s.spend_usd, 0), 2) AS ntb_roas,\nCAST(a.ntb_purchasers AS BIGINT) AS ntb_purchasers,\nROUND(s.spend_usd / NULLIF(a.ntb_purchasers, 0), 2) AS cac,\nROUND(a.total_purchases / NULLIF(CAST(s.total_clicks AS DOUBLE), 0), 4) AS cvr\nFROM attributed a\nLEFT JOIN spend_combined s ON a.campaign_id_string = s.campaign_id_string\n"
+        }
+      ],
+      "viz": {
+        "defaults": {
+          "group": "path_group",
+          "measure": "ad_roas",
+          "x": "",
+          "chart": "bar",
+          "top": "all",
+          "dir": "desc"
+        },
+        "groupOrder": {
+          "col": "path_group",
+          "values": [
+            "Branded only",
+            "Branded then Non-branded",
+            "Non-branded then Branded",
+            "Non-branded only"
+          ]
+        },
+        "derived": [
+          {
+            "name": "path_group",
+            "label": "Path group",
+            "path": {
+              "col": "path",
+              "other": "B"
+            }
+          },
+          {
+            "name": "path_side",
+            "label": "Side (first touch)",
+            "path": {
+              "col": "path",
+              "other": "B",
+              "mode": "side"
+            }
+          },
+          {
+            "name": "ad_roas",
+            "label": "Ad ROAS",
+            "ratio": [
+              "sales_amount",
+              "total_cost"
+            ],
+            "fmt": "num2"
+          },
+          {
+            "name": "cost_per_ntb",
+            "label": "Cost per NTB customer",
+            "ratio": [
+              "total_cost",
+              "ntb_users_that_purchased"
+            ],
+            "fmt": "money"
+          },
+          {
+            "name": "ntb_share",
+            "label": "NTB % of buyers",
+            "ratio": [
+              "ntb_users_that_purchased",
+              "users_that_purchased"
+            ],
+            "scale": 100,
+            "fmt": "pct"
+          }
+        ],
+        "hide": [
+          "user_purchase_rate",
+          "ntb_percentage"
+        ],
+        "labels": {
+          "path": "Raw path",
+          "path_occurrences": "Shoppers in path",
+          "total_impressions": "Impressions",
+          "total_clicks": "Clicks",
+          "total_cost": "Cost",
+          "users_that_purchased": "Buyers",
+          "purchases": "Purchases",
+          "sales_amount": "Sales",
+          "ntb_users_that_purchased": "NTB buyers",
+          "ntb_purchases": "NTB purchases",
+          "ntb_sales_amount": "NTB sales"
+        },
+        "formats": {
+          "total_cost": "money",
+          "sales_amount": "money",
+          "ntb_sales_amount": "money"
+        },
+        "kpis": [
+          {
+            "label": "True NB ROAS",
+            "ratio": [
+              "sales_amount",
+              "total_cost"
+            ],
+            "where": {
+              "col": "path_group",
+              "in": [
+                "Non-branded only",
+                "Non-branded then Branded"
+              ]
+            },
+            "fmt": "num2",
+            "note": "Non-branded only + Non-branded then Branded"
+          },
+          {
+            "label": "Branded ROAS",
+            "ratio": [
+              "sales_amount",
+              "total_cost"
+            ],
+            "where": {
+              "col": "path_group",
+              "in": [
+                "Branded only",
+                "Branded then Non-branded"
+              ]
+            },
+            "fmt": "num2",
+            "note": "Branded only + Branded then Non-branded"
+          },
+          {
+            "label": "Cost per NTB, NB-first paths",
+            "ratio": [
+              "total_cost",
+              "ntb_users_that_purchased"
+            ],
+            "where": {
+              "col": "path_group",
+              "in": [
+                "Non-branded only",
+                "Non-branded then Branded"
+              ]
+            },
+            "fmt": "money"
+          },
+          {
+            "label": "Non-branded only ROAS",
+            "ratio": [
+              "sales_amount",
+              "total_cost"
+            ],
+            "where": {
+              "col": "path_group",
+              "in": [
+                "Non-branded only"
+              ]
+            },
+            "fmt": "num2"
+          },
+          {
+            "label": "Buyers from ads",
+            "sum": "users_that_purchased",
+            "fmt": "int",
+            "note": "Each shopper counted once, in one path"
+          },
+          {
+            "label": "NTB customers from ads",
+            "sum": "ntb_users_that_purchased",
+            "fmt": "int"
+          }
+        ]
+      },
+      "createdAt": "2026-11-19T18:50:00.000Z",
+      "updatedAt": "2026-11-19T18:50:00.000Z",
+      "author": ""
+    },
+    {
+      "id": "repeat-purchase-timing",
+      "title": "Repeat Purchase Timing",
+      "type": "Other",
+      "summary": "How long customers take to buy again within each product line, bucketed from under a day to 180+ days. Use it to time retargeting and replenishment.",
+      "description": "For every customer, each purchase in a product line is paired with their next purchase in the same line, and the gap between them is bucketed into 11 windows (under 1 day through 180+ days). Each row is a product line and window, with the customers and purchase pairs that fell in it and that window's share of the line's repurchasers.\n\nIt reads all purchases of the brand's ASINs from `conversions_all`, so organic and ad-driven purchases both count, for new and existing customers. You map ASINs to product lines in the query, and a purchase of any ASIN in a line counts as a repurchase of that line.\n\nThe peak window is the line's natural repurchase cycle. A cluster in the first two windows usually means multi-pack or same-week top-up orders rather than true replenishment.",
+      "howTo": [
+        "Fill in the header: replace `<BRAND NAME>` and `<AMC INSTANCE>` in the comment block. These are comments and don't change results.",
+        "Required: in `asin_to_product_line`, replace the five example rows with every ASIN you want counted and its product line, one `('ASIN', 'Product Line')` per line, separated by commas. Pull the list from the brand's product report.",
+        "Only listed ASINs count. Double any apostrophe inside a product line name, e.g. `'Kid''s'`.",
+        "Set the date range in the AMC UI. Only gaps that start and end inside the range are counted: a 90-day range fills windows up to 60–90 days, and you need 6+ months to fill the 90–180+ windows.",
+        "Run and export. In Excel, sort by `product_line`, then `repurchase_window` (the 01–11 prefix keeps windows in order).",
+        "Chart each product line's `pct_of_repurchasers` by window to see its repurchase curve."
+      ],
+      "requirements": [
+        "Paid feature: Amazon Insights. `conversions_all` is listed under Subscriptions in the AMC query editor, not with the standard Amazon Ads tables. Amazon Insights is the subscription that covers non-ad-exposed conversion events. Check Paid features on the brand's instance before running.",
+        "Table: `conversions_all`. Ad-attributed and non-ad-attributed purchases of the mapped ASINs, as long as they're tracked to the brand's DSP or Sponsored Ads campaigns.",
+        "ASIN-to-product-line map: You supply it. ASINs left out are ignored.",
+        "Date range: Longer ranges fill the longer windows and catch slower repurchase cycles. Short ranges skew the curve toward fast repurchases.",
+        "Aggregation threshold: AMC drops rows below its minimum distinct-user count, so small lines may show only some windows.",
+        "Percent column: A customer with several repurchases can count in more than one window, so `pct_of_repurchasers` is a share of customer-window counts, not of distinct people."
+      ],
+      "useCases": [
+        "Retargeting timing: Start SD or DSP retargeting for a line just before its peak window, e.g. day 25 for a line that peaks at 30–45 days.",
+        "Audience lookbacks: Set purchase-based audience lookbacks to cover a line's main repurchase windows, without paying for customers who aren't due yet.",
+        "Subscribe & Save pushes: Lines with a tight, predictable peak are the best candidates for Subscribe & Save offers and messaging.",
+        "Pack size and bundles: Heavy early windows (under 3 days) suggest customers want bigger packs or bundles.",
+        "Product line comparison: Compare curves across lines to see which bring customers back fastest, and pair it with LTV and CAC when setting budgets."
+      ],
+      "example": {
+        "columns": [
+          "product_line",
+          "repurchase_window",
+          "unique_users",
+          "purchase_pairs",
+          "pct_of_repurchasers"
+        ],
+        "rows": [
+          [
+            "Whey",
+            "01 | < 1 day",
+            "569",
+            "675",
+            "5.04"
+          ],
+          [
+            "Whey",
+            "02 | 1 - 3 days",
+            "388",
+            "439",
+            "3.44"
+          ],
+          [
+            "Whey",
+            "03 | 3 - 7 days",
+            "625",
+            "748",
+            "5.54"
+          ],
+          [
+            "Whey",
+            "04 | 7 - 14 days",
+            "1407",
+            "2023",
+            "12.47"
+          ],
+          [
+            "Whey",
+            "05 | 14 - 30 days",
+            "3737",
+            "5336",
+            "33.13"
+          ],
+          [
+            "Whey",
+            "06 | 30 - 45 days",
+            "2652",
+            "2896",
+            "23.51"
+          ],
+          [
+            "Whey",
+            "07 | 45 - 60 days",
+            "1221",
+            "1249",
+            "10.83"
+          ],
+          [
+            "Whey",
+            "08 | 60 - 90 days",
+            "680",
+            "693",
+            "6.03"
+          ],
+          [
+            "Hydration",
+            "01 | < 1 day",
+            "543",
+            "724",
+            "6.13"
+          ],
+          [
+            "Hydration",
+            "02 | 1 - 3 days",
+            "332",
+            "384",
+            "3.75"
+          ],
+          [
+            "Hydration",
+            "03 | 3 - 7 days",
+            "552",
+            "734",
+            "6.24"
+          ],
+          [
+            "Hydration",
+            "04 | 7 - 14 days",
+            "1123",
+            "1661",
+            "12.68"
+          ],
+          [
+            "Hydration",
+            "05 | 14 - 30 days",
+            "2919",
+            "4285",
+            "32.97"
+          ],
+          [
+            "Hydration",
+            "06 | 30 - 45 days",
+            "2066",
+            "2344",
+            "23.34"
+          ],
+          [
+            "Hydration",
+            "07 | 45 - 60 days",
+            "884",
+            "935",
+            "9.99"
+          ],
+          [
+            "Hydration",
+            "08 | 60 - 90 days",
+            "434",
+            "446",
+            "4.90"
+          ]
+        ],
+        "note": "Real output from a brand run, showing two of its product lines (Whey, Hydration). Sorted by window; percent rounded for display."
+      },
+      "tags": [
+        "conversions_all",
+        "Paid feature",
+        "Repeat purchase",
+        "Product line map"
+      ],
+      "sql": "-- =====================================================================\n-- REPEAT PURCHASE TIMING BY PRODUCT LINE  |  TEMPLATE FOR ANY BRAND\n-- Brand: <BRAND NAME>        Instance: <AMC INSTANCE>\n-- =====================================================================\n-- HOW TO USE\n--   1. Open the brand's own AMC instance.\n--   2. REQUIRED: fill in asin_to_product_line with the brand's ASINs and\n--      the product line each belongs to, one ('ASIN', 'Product Line') row\n--      per ASIN, separated by commas. Pull the list from the brand's\n--      product report. Only listed ASINs are counted. Double any\n--      apostrophe inside a name ('Kid''s').\n--   3. Set the date range in the AMC UI. Only repurchases that happen\n--      inside the range are counted, so a 90-day range shows nothing past\n--      the 60-90 day bucket. Use 6+ months to fill the 90-180+ buckets.\n--   4. Run. Sort in Excel by product_line, then repurchase_window\n--      (the 01-11 prefix keeps buckets in order). AMC has no ORDER BY.\n--\n-- OUTPUT (one row per product line x repurchase window)\n--   repurchase_window     time between a purchase and the customer's next\n--                         purchase in the SAME product line\n--   unique_users          customers with at least one gap in that window\n--   purchase_pairs        purchase-to-next-purchase gaps in that window\n--   pct_of_repurchasers   unique_users as a % of all repurchasers in the line\n--\n-- NOTES\n--   * Counts every purchase of the brand's ASINs (conversions_all), not\n--     only ad-attributed ones, and every customer, not only new-to-brand.\n--   * A customer with several repurchases can land in more than one window,\n--     so pct_of_repurchasers is a share of customer-window counts.\n--   * Purchases of different ASINs in the same line count as repurchases\n--     of that line.\n--   * AMC drops rows below its minimum-user threshold, so small lines may\n--     show only some windows.\n-- =====================================================================\n\nWITH\n  -- REQUIRED: replace with the brand's ASINs and product lines\n  asin_to_product_line (asin, product_line) AS (\n    SELECT\n      *\n    FROM\n      (\n        VALUES\n          ('ASIN0000001', 'Product Line A'),\n          ('ASIN0000002', 'Product Line A'),\n          ('ASIN0000003', 'Product Line B'),\n          ('ASIN0000004', 'Product Line B'),\n          ('ASIN0000005', 'Product Line C')\n      ) AS _values\n  ),\n\n  -- Every purchase of a mapped ASIN, tagged with its product line\n  purchases AS (\n    SELECT\n      c.user_id,\n      p.product_line,\n      c.event_dt_utc AS purchase_dt\n    FROM\n      conversions_all AS c\n      INNER JOIN asin_to_product_line AS p ON c.tracked_item = p.asin\n    WHERE\n      c.event_category = 'purchase'\n      AND c.total_units_sold > 0\n      AND NOT c.user_id IS NULL\n  ),\n\n  -- Order each customer's purchases within a product line\n  ranked_purchases AS (\n    SELECT\n      user_id,\n      product_line,\n      purchase_dt,\n      RANK() OVER (\n        PARTITION BY\n          user_id,\n          product_line\n        ORDER BY\n          purchase_dt\n      ) AS purchase_rank\n    FROM\n      purchases\n  ),\n\n  -- Pair each purchase with the customer's next one in the same line\n  consecutive_pairs AS (\n    SELECT\n      a.user_id,\n      a.product_line,\n      SECONDS_BETWEEN (a.purchase_dt, b.purchase_dt) AS seconds_between\n    FROM\n      ranked_purchases AS a\n      INNER JOIN ranked_purchases AS b ON a.user_id = b.user_id\n      AND a.product_line = b.product_line\n      AND b.purchase_rank = a.purchase_rank + 1\n  ),\n\n  filtered_pairs AS (\n    SELECT\n      user_id,\n      product_line,\n      seconds_between\n    FROM\n      consecutive_pairs\n    WHERE\n      seconds_between >= 0\n  ),\n\n  -- Bucket the gaps (seconds: 86400 = 1 day)\n  bucketed AS (\n    SELECT\n      product_line,\n      CASE\n        WHEN seconds_between <= 86400 THEN '01 | < 1 day'\n        WHEN seconds_between <= 259200 THEN '02 | 1 - 3 days'\n        WHEN seconds_between <= 604800 THEN '03 | 3 - 7 days'\n        WHEN seconds_between <= 1209600 THEN '04 | 7 - 14 days'\n        WHEN seconds_between <= 2592000 THEN '05 | 14 - 30 days'\n        WHEN seconds_between <= 3888000 THEN '06 | 30 - 45 days'\n        WHEN seconds_between <= 5184000 THEN '07 | 45 - 60 days'\n        WHEN seconds_between <= 7776000 THEN '08 | 60 - 90 days'\n        WHEN seconds_between <= 10368000 THEN '09 | 90 - 120 days'\n        WHEN seconds_between <= 15552000 THEN '10 | 120 - 180 days'\n        ELSE '11 | 180+ days'\n      END AS repurchase_window,\n      COUNT(DISTINCT user_id) AS unique_users,\n      COUNT(1) AS purchase_pairs\n    FROM\n      filtered_pairs\n    GROUP BY\n      product_line,\n      repurchase_window\n  ),\n\n  -- Denominator for the % column\n  totals AS (\n    SELECT\n      product_line,\n      SUM(unique_users) AS total_users\n    FROM\n      bucketed\n    GROUP BY\n      product_line\n  )\n\nSELECT\n  b.product_line,\n  b.repurchase_window,\n  b.unique_users,\n  b.purchase_pairs,\n  CAST(b.unique_users AS DOUBLE) / NULLIF(t.total_users, 0) * 100 AS pct_of_repurchasers\nFROM\n  bucketed AS b\n  INNER JOIN totals AS t ON b.product_line = t.product_line\n",
+      "createdAt": "2026-10-22T22:27:00.000Z",
+      "updatedAt": "2026-10-22T22:27:00.000Z",
+      "viz": {
+        "defaults": {
+          "group": "product_line",
+          "measure": "pct_of_repurchasers",
+          "x": "repurchase_window",
+          "chart": "bar",
+          "top": "6",
+          "dir": "desc"
+        },
+        "labels": {
+          "pct_of_repurchasers": "% of repurchasers",
+          "unique_users": "Customers",
+          "purchase_pairs": "Purchase pairs"
+        },
+        "kpis": [
+          {
+            "label": "Product lines",
+            "distinct": "product_line"
+          },
+          {
+            "label": "Repurchasing customers",
+            "sum": "unique_users",
+            "fmt": "int",
+            "note": "Customer-window counts"
+          },
+          {
+            "label": "Purchase pairs",
+            "sum": "purchase_pairs",
+            "fmt": "int"
+          },
+          {
+            "label": "Most common window",
+            "top": [
+              "repurchase_window",
+              "unique_users"
+            ]
+          }
+        ],
+        "rankBy": "unique_users"
+      },
+      "author": ""
+    },
+    {
+      "id": "t1781134756829",
+      "title": "2+ Purchase and Not in SNS",
+      "type": "Other",
+      "summary": "Identifies customers with 2+ purchases who are not enrolled in Subscribe & Save — useful for targeting repeat buyers as SNS conversion candidates.",
+      "description": "",
+      "howTo": [],
+      "requirements": [],
+      "useCases": [],
+      "tags": [
+        "PPC",
+        "DSP"
+      ],
+      "sql": "WITH\npurchase AS(\nSELECT\nuser_id,\nconversions\nFROM\nconversions_for_audiences\nWHERE\nevent_subtype = 'order'\n),\npurchase_summary AS (\nSELECT\nuser_id,\nSUM(conversions)\nFROM\npurchase\ngroup by 1\nhaving\nSUM(conversions) >= 2\n)",
+      "author": "Matan L.",
+      "createdAt": "2026-06-10T23:39:16.833Z",
+      "updatedAt": "2026-11-20T20:10:45.000Z"
+    }
+  ],
+  "log": []
+}
