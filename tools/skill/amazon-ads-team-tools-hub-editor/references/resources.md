@@ -28,6 +28,10 @@ SOPs, playbooks and guides, usually Word documents on SharePoint. Cards show the
 | `author` | optional | Defaults to "PLTFRM" for team documents. |
 | `tags` | optional | Usually empty. If used, names from the Tags list. |
 
+## Featured on the home page
+
+If an entry you remove (or whose id the person insists on changing) is one of the home page's Featured picks, the home page will skip it. Say so in your reply and suggest choosing a replacement in Manage Page, Home.
+
 ## Checklist
 
 - [ ] Complete file; ids unique and unchanged.

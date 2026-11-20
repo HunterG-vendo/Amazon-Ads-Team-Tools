@@ -5,7 +5,7 @@ description: Edit the files behind PLTFRM's Amazon Ads Team Tools Hub (hunterg-v
 
 # Amazon Ads Team Tools Hub Editor
 
-The Team Tools hub is a static website on GitHub Pages with four tabs: AMC Queries, Apps, Skills and Resources. Everything shown on it lives in a handful of files. A manager downloads one of those files from the hub (Manage Page, Upload, Upload from file, step 2), edits it with you, and uploads the result in step 4. The site checks the file, shows exactly what will change, and publishes only that one file.
+The Team Tools hub is a static website on GitHub Pages. It opens on a home page (Featured picks, Recently opened, Browse) and has four tabs: AMC Queries, Apps, Skills and Resources. Everything shown on it lives in a handful of files. A manager downloads one of those files from the hub (Manage Page, Upload, Upload from file, step 2), edits it with you, and uploads the result in step 4. The site checks the file, shows exactly what will change, and publishes only that one file.
 
 Your job is to turn what the person wants into a correct, complete version of that one file, without disturbing anything else in it. People using this may never have seen the hub's files before. Guide them, ask for what is missing, and never guess at facts.
 
@@ -19,12 +19,28 @@ Look at the file name and at its `"file"` field. They must agree.
 | `apps.json` | `apps` | Apps | `references/apps.md` |
 | `skills.json` | `skills` | Skills | `references/skills.md` |
 | `resources.json` | `resources` | Resources | `references/resources.md` |
-| `config.json` | `config` | Tags list and AMC categories | `references/tags-and-categories.md` |
-| `index.html` or `core.js`, `validate.js`, `analyzer.js`, `manager.js`, `tab-amc.js`, `tab-apps.js`, `tab-skills.js`, `tab-resources.js` | (code, no field) | The site itself | `references/site-code.md` |
+| `config.json` | `config` | Home page featured items, Tags list and AMC categories | `references/tags-and-categories.md` |
+| `index.html` or `core.js`, `validate.js`, `analyzer.js`, `manager.js`, `tab-home.js`, `tab-amc.js`, `tab-apps.js`, `tab-skills.js`, `tab-resources.js` | (code, no field) | The site itself | `references/site-code.md` |
 
 Read the matching guide before changing anything. If no file was shared yet, ask for it: "Download the current file from Manage Page, Upload, Upload from file, step 2, and share it here." Do not rebuild a file from memory or from an older copy in the conversation; the live file may have changed since.
 
 If the request spans two files (for example a new AMC category and a query that uses it), handle them as two separate files and say which to upload first. The hub publishes one file per upload on purpose.
+
+## Big changes go to Hunter G. for review first
+
+Some changes reshape the hub rather than its content. For these, still do the work (prepare the complete files and explain them), but **do not tell the person to upload them**. Tell them to send the files and your summary to **Hunter G.**, who owns the hub, reviews big changes and uploads them himself.
+
+A change is big if it does any of these:
+- Adds, removes or renames a tab or a whole section (for example a new "Dashboards" tab like Skills), or adds a new kind of entry or a new data file.
+- Changes how publishing, backups, the password, the GitHub connection, the Upload checks or the "keep pages up to date" logic work.
+- Changes the analyzer's calculations, or the home page's structure.
+- Redesigns the look (layout, colors, fonts) beyond fixing a typo in a label.
+- Touches more than one site code file, or removes more than a few entries from any data file at once.
+- Anything you are not confident is safe.
+
+For a big change, end your reply with a **Review package for Hunter G.**: what was asked, what you changed in each file and why, what could break, how to test it (for example: open preview.html, then each tab, then Manage Page), and how to roll back (the backups and GitHub history). Then: "Send these files and this summary to Hunter G. for review. Do not upload them yourself."
+
+Small changes stay self-service: adding, editing, removing or reordering a few queries, apps, skills, resources, tags, categories or home page picks, and one-line label or text fixes in the site code.
 
 ## Step 2: understand the request, then interview for gaps
 
@@ -76,6 +92,7 @@ Always use this order:
 - **One file per upload.** Changes that touch two files (a new category plus queries in it, or renaming a category) need two uploads in the order you give.
 - **Removing entries asks for a second click** in the hub, and the preview lists every removal by name.
 - **The file name must match** exactly. Browser copies such as `apps (1).json` are accepted; anything else, like `apps-new.json`, is rejected.
+- **Featured items:** if you remove an entry that is featured on the home page, the home page simply skips it. Mention it, and suggest picking a replacement in Manage Page, Home.
 - **Small edits do not need a file at all.** Editing one field of an existing app, skill, resource, tag or query can be done directly in Manage Page, Content, then Push to GitHub. New AMC queries and new skill files are the main reasons to use Upload from file.
 
 ## Team writing style
@@ -93,4 +110,4 @@ The hub is read by PLTFRM's Amazon Ads team. Write the way the existing entries 
 
 - **Adding or replacing a skill's .skill file through JSON**: redirect to Manage Page, Content, Skills, where the file is uploaded directly. You cannot create that encoded data reliably.
 - **Changing the GitHub token or connection**: redirect to Manage Page, Settings ("Copy GH_CONFIG line"), then a site code upload of index.html. See `references/site-code.md`.
-- **Requests the files cannot express** (new tabs, new kinds of entries, layout changes): these are site code changes; follow `references/site-code.md` and recommend testing with the preview first.
+- **Requests the files cannot express** (new tabs, new kinds of entries, layout changes): these are big site code changes. Follow `references/site-code.md`, prepare the files, and hand them over as a review package for Hunter G. (see "Big changes go to Hunter G. for review first"). Never tell the person to upload them directly.

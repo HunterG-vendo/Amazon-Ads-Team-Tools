@@ -8,15 +8,16 @@
     'apps':        { id: 'apps',        label: 'Apps',        file: 'apps.json',        path: 'data/apps.json',        kind: 'data', noun: 'app',   nouns: 'apps' },
     'skills':      { id: 'skills',      label: 'Skills',      file: 'skills.json',      path: 'data/skills.json',      kind: 'data', noun: 'skill', nouns: 'skills' },
     'resources':   { id: 'resources',   label: 'Resources',   file: 'resources.json',   path: 'data/resources.json',   kind: 'data', noun: 'resource', nouns: 'resources' },
-    'config':      { id: 'config',      label: 'Tags & Categories', file: 'config.json', path: 'data/config.json',      kind: 'config', noun: 'tag', nouns: 'tags' }
+    'config':      { id: 'config',      label: 'Home, Tags & Categories', file: 'config.json', path: 'data/config.json',      kind: 'config', noun: 'tag', nouns: 'tags' }
   };
   var DATA_TARGETS = ['amc-queries', 'apps', 'skills', 'resources'];
 
   // Site code files that the Upload tab is allowed to replace.
-  var SITE_FILES = ['index.html', 'js/core.js', 'js/validate.js', 'js/analyzer.js', 'js/tab-amc.js',
+  var SITE_FILES = ['index.html', 'js/core.js', 'js/validate.js', 'js/analyzer.js', 'js/tab-home.js', 'js/tab-amc.js',
                     'js/tab-apps.js', 'js/tab-skills.js', 'js/tab-resources.js', 'js/manager.js'];
   var RESERVED_TAGS = ['app', 'skill', 'amc query', 'resource'];
   var LOG_CAP = 150;
+  var FEATURED_MAX = 6;
   var SIZE_WARN = 900 * 1024;
 
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
@@ -191,6 +192,22 @@
           if (!catErrors) checks.push(obj.amcCategories.length + ' AMC categories, all with a name and icon');
         }
       }
+      if (obj.featured !== undefined) {
+        if (!Array.isArray(obj.featured)) errors.push('"featured" (the home page picks) must be a list.');
+        else {
+          var seenF = {}, fErrors = 0;
+          if (obj.featured.length > FEATURED_MAX) { errors.push('The home page shows up to ' + FEATURED_MAX + ' featured items; this file has ' + obj.featured.length + '.'); fErrors++; }
+          obj.featured.forEach(function (f, i) {
+            if (!isObj(f) || DATA_TARGETS.indexOf(f.target) === -1 || !nonEmpty(f.id)) {
+              errors.push('Featured item ' + (i + 1) + ' needs a "target" (one of ' + DATA_TARGETS.join(', ') + ') and an "id".'); fErrors++; return;
+            }
+            var k = f.target + ':' + f.id;
+            if (seenF[k]) { errors.push('Featured item ' + (i + 1) + ' is listed twice (' + f.target + ' ' + f.id + ').'); fErrors++; }
+            seenF[k] = true;
+          });
+          if (!fErrors) checks.push(obj.featured.length + ' featured ' + (obj.featured.length === 1 ? 'item' : 'items') + ' for the home page');
+        }
+      }
       return { errors: errors, warnings: warnings, checks: checks };
     }
 
@@ -265,6 +282,11 @@
       else if (stable(oc[n]) !== stable(nc[n])) changed.push({ id: 'cat:' + n, label: 'category ' + n, fields: changedFields(oc[n], nc[n]) });
     });
     Object.keys(oc).forEach(function (n) { if (!nc[n]) removed.push({ id: 'cat:' + n, label: 'category ' + n }); });
+    var fkey = function (o) { return stable((o.featured || []).map(function (f) { return f && f.target + ':' + f.id; })); };
+    var fo = (oldObj.featured || []).map(function (f) { return f && f.target + ':' + f.id; }).sort().join('\n');
+    var fn = (newObj.featured || []).map(function (f) { return f && f.target + ':' + f.id; }).sort().join('\n');
+    if (fo !== fn) changed.push({ id: 'featured', label: 'home page featured items', fields: ['featured'] });
+    else if (fkey(oldObj) !== fkey(newObj)) changed.push({ id: 'featured', label: 'home page featured order', fields: ['featured'] });
     var names = function (arr) { return (arr || []).map(function (c) { return c.name; }).join('\n'); };
     var reordered = !added.length && !removed.length && (names(oldObj.amcCategories) !== names(newObj.amcCategories) || names(oldObj.tags) !== names(newObj.tags));
     return { added: added, removed: removed, changed: changed, recolored: [], reordered: reordered, unchanged: 0 };
@@ -295,7 +317,7 @@
       warnings.push('Browsers keep code files for up to 10 minutes. Also upload index.html with the ?v= number raised so everyone gets this change right away.');
     } else {
       if (!/<!doctype html>/i.test(text)) errors.push('index.html must start with <!DOCTYPE html>.');
-      var need = ['js/validate.js', 'js/core.js', 'js/analyzer.js', 'js/tab-amc.js', 'js/tab-apps.js', 'js/tab-skills.js', 'js/tab-resources.js', 'js/manager.js'];
+      var need = ['js/validate.js', 'js/core.js', 'js/analyzer.js', 'js/tab-home.js', 'js/tab-amc.js', 'js/tab-apps.js', 'js/tab-skills.js', 'js/tab-resources.js', 'js/manager.js'];
       var missing = need.filter(function (f) { return text.indexOf('src="' + f) === -1; });
       if (missing.length) errors.push('index.html is missing script tags for: ' + missing.join(', ') + '.');
       else checks.push('Loads all site scripts');
@@ -307,7 +329,7 @@
 
   var api = {
     TARGETS: TARGETS, DATA_TARGETS: DATA_TARGETS, SITE_FILES: SITE_FILES, RESERVED_TAGS: RESERVED_TAGS,
-    LOG_CAP: LOG_CAP, SIZE_WARN: SIZE_WARN,
+    LOG_CAP: LOG_CAP, SIZE_WARN: SIZE_WARN, FEATURED_MAX: FEATURED_MAX,
     isHttpUrl: isHttpUrl, isHex: isHex, looksLikeZipBase64: looksLikeZipBase64,
     normalizeFileName: normalizeFileName, checkFileName: checkFileName, parseJson: parseJson,
     itemLabel: itemLabel, validateItem: validateItem, validateData: validateData,

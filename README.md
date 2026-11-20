@@ -2,7 +2,7 @@
 
 Live at https://hunterg-vendo.github.io/Amazon-Ads-Team-Tools/
 
-A static site on GitHub Pages with four tabs: AMC Queries, Apps, Skills and Resources. No server; Manage Page publishes changes straight to this repo through the GitHub API.
+A static site on GitHub Pages. It opens on a home page (Featured picks, Recently opened, Browse) and has four tabs: AMC Queries, Apps, Skills and Resources. No server; Manage Page publishes changes straight to this repo through the GitHub API.
 
 ## Files
 
@@ -11,6 +11,7 @@ index.html            Page shell, styling, GitHub connection (GH_CONFIG) and the
 js/validate.js        All checks used before publishing (file names, JSON, required fields, diffs)
 js/core.js            Loads the data files, tab navigation, shared helpers, Filters menu, category icons, skill downloads
 js/analyzer.js        Output analyzer on each AMC query page (charts, headline numbers, tables, PDF and Excel)
+js/tab-home.js        Home page: Featured picks, Recently opened (per browser), Browse cards
 js/tab-amc.js         AMC Queries tab (list and query pages)
 js/tab-apps.js        Apps tab
 js/tab-skills.js      Skills tab
@@ -20,7 +21,7 @@ data/amc-queries.json AMC queries
 data/apps.json        Apps
 data/skills.json      Skills (the .skill files are stored inside as base64)
 data/resources.json   Resources
-data/config.json      Tags, AMC categories (name and icon), plus the earlier activity history
+data/config.json      Home page featured picks, tags, AMC categories (name and icon), plus the earlier activity history
 backups/              Created automatically before every publish; the 3 newest copies of each file
 downloads/            The Claude skill (amazon-ads-team-tools-hub-editor.skill) and one copy-paste prompt per file type, used in Upload from file, step 3
 tools/                Source of the skill (tools/skill/) and build_skill.py, which generates downloads/
@@ -32,13 +33,13 @@ Each data file has the same outer shape: `file` (its own name, used to catch wro
 
 The old site's Upload & Push can only replace index.html, so the first deploy goes through GitHub's website in one commit.
 
-1. Unzip the package. You should see `index.html`, a `js` folder (8 files), a `data` folder (5 files), a `downloads` folder (the skill and 6 prompts) and a `tools` folder. (README.md and preview.html are optional to upload.)
+1. Unzip the package. You should see `index.html`, a `js` folder (9 files), a `data` folder (5 files), a `downloads` folder (the skill and 6 prompts) and a `tools` folder. (README.md and preview.html are optional to upload.)
 2. Open https://github.com/HunterG-vendo/Amazon-Ads-Team-Tools
 3. Click **Add file**, then **Upload files**.
 4. Drag in `index.html` and the `js`, `data`, `downloads` and `tools` folders together. GitHub keeps the folders.
 5. Commit directly to the main branch.
 6. Wait about a minute, then open the live site and hard-refresh (Cmd+Shift+R or Ctrl+Shift+R).
-7. Check: four tabs show counts of 11, 7, 2 and 4. Open Manage Page; under your name it should say "Editing the latest files from GitHub."
+7. Check: the site opens on the home page with six Featured cards, and AMC Queries, Apps, Skills and Resources show 11, 7, 2 and 4 cards. Open Manage Page; under your name it should say "Editing the latest files from GitHub."
 
 If something looks wrong, the previous version is in the repo history and in `index_v3.0_backup_before_amc_library.html`.
 
@@ -50,6 +51,8 @@ If something looks wrong, the previous version is in the repo history and in `in
 - **Bigger changes with Claude:** Manage Page, Upload, **Upload from file**: pick the tab, download the current file, then in step 3 either **Download the Claude skill** (add it to Claude once; it handles every file type) or **Copy prompt** for that file and paste it into Claude with the file. Describe the change, save Claude's file with the same name, drop it in step 4, review the checks and the change preview, then publish. Only that one file changes.
 - **Updating the skill or prompts:** edit the markdown in `tools/skill/amazon-ads-team-tools-hub-editor/`, run `python tools/build_skill.py` from the repo root, then upload the changed `tools/` and `downloads/` files on the GitHub website. The skill's `scripts/check_file.py` mirrors `js/validate.js`; if the hub's checks change, update both.
 - **Backups:** every publish (Push to GitHub, Save and publish, the per-tab Publish buttons, and Upload from file) first copies the live version of each file it changes into `backups/data/` (data files) or `backups/site/` (code files), named with the date and time, then keeps only the 3 newest per file. Only the files being changed are copied, never the whole repo. If a backup can't be saved, nothing is published. To restore, open Upload from file, pick the tab, download a backup from step 2 (it downloads with the original file name) and drop it in step 4. GitHub's commit history also keeps every version.
+- **Home page picks:** Manage Page, Home. Six slots, any mix of queries, apps, skills and resources, shown in that order. A pick whose item was removed is skipped on the page and flagged here.
+- **Big changes go to Hunter G.:** new tabs, new kinds of content, changes to publishing, backups, the password, the analyzer or the design. The Claude skill prepares the files plus a review package and tells the person to send them to Hunter G. instead of uploading them.
 - **AMC categories:** Tags & Categories. Add a category with an icon, change icons, reorder (sets the order in the Filters menu). To rename, add the new one, move queries to it in Content, then remove the old one.
 - **Analyzer settings:** each query's `viz` object in amc-queries.json holds its derived metrics, headline numbers and default chart. Queries without one get automatic defaults. Edit through Upload from file.
 - **New AMC query from Claude:** Content, AMC Queries, Add query, open "Fill this form from JSON", paste, review, publish.

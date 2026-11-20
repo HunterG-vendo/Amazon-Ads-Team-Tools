@@ -10,7 +10,7 @@
         intro: 'Browser tools built by the team. Each one opens in a new tab.',
         placeholder: 'Search apps',
         cardHtml: function (it) {
-          return '<a class="tool-card" href="' + Hub.esc(it.url) + '" target="_blank" rel="noopener">' +
+          return '<a class="tool-card" href="' + Hub.esc(it.url) + '" target="_blank" rel="noopener" data-id="' + Hub.esc(it.id) + '">' +
             '<div class="card-top"><div class="card-name">' + Hub.esc(it.name) + '</div><span class="card-icon">' + Hub.icon('external') + '</span></div>' +
             (it.desc ? '<div class="card-desc">' + Hub.esc(it.desc) + '</div>' : '') +
             (it.author ? '<div class="card-author">By <span>' + Hub.esc(it.author) + '</span></div>' : '') +

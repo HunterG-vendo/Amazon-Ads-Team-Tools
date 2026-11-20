@@ -36,6 +36,10 @@ Claude skills the team can download. Clicking a card opens a window with a Downl
 - **Cannot**: add a new skill file or replace one. Encoding a file by hand in a chat is not reliable, and one wrong character makes the download a broken file. Tell the person: "Add or replace the .skill file in Manage Page, Content, Skills: Add skill or Edit, then drop the .skill file. That stores it correctly." You can still prepare the name, description and tags for them to paste into that form.
 - **Large file**: skills.json carries every stored skill, so it can be big. Always return it as a downloadable file. If your environment cannot return the full file without risk of cutting it off, recommend making the change in Manage Page, Content instead.
 
+## Featured on the home page
+
+If an entry you remove (or whose id the person insists on changing) is one of the home page's Featured picks, the home page will skip it. Say so in your reply and suggest choosing a replacement in Manage Page, Home.
+
 ## Checklist
 
 - [ ] Every `skillData` value identical to the original (same length, same first and last characters).

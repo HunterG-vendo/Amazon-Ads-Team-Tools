@@ -131,6 +131,10 @@ Use parts when the analysis needs several queries run in order and saved as sepa
 
 Remove exactly the named query. Mention that people's saved analyzer results for it stay in their browsers but are no longer reachable, and that the backup lets them restore it.
 
+## Featured on the home page
+
+If an entry you remove (or whose id the person insists on changing) is one of the home page's Featured picks, the home page will skip it. Say so in your reply and suggest choosing a replacement in Manage Page, Home.
+
 ## Checklist (go through it before replying)
 
 - [ ] File is complete; entry count is the old count plus additions minus removals.

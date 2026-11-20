@@ -1,5 +1,7 @@
 # Site code (index.html and js files)
 
+**Most code changes are big changes: prepare them as a review package for Hunter G. instead of telling the person to upload them** (see the main instructions). Only one-line label or text fixes are self-service.
+
 Changing code changes the whole hub for everyone, including Manage Page, which is how every other change gets published. A broken code file can lock people out of fixing it from the hub. Work carefully, change as little as possible, and always return whole files.
 
 ## The files
@@ -10,6 +12,7 @@ Changing code changes the whole hub for everyone, including Manage Page, which i
 | `js/validate.js` | Every check used before publishing (file names, JSON, required fields, diffs, site file checks). |
 | `js/core.js` | Loads the data files, tab navigation, shared helpers, Filters menus, category icons, skill downloads, keeping open pages up to date. |
 | `js/analyzer.js` | The "Analyze the output" section on AMC query pages (Chart.js, SheetJS and jsPDF loaded from cdn.jsdelivr.net). |
+| `js/tab-home.js` | The home page: Featured picks (from config.json), Recently opened (per browser), Browse cards. |
 | `js/tab-amc.js` | AMC Queries list and query pages. |
 | `js/tab-apps.js`, `js/tab-skills.js`, `js/tab-resources.js` | The other three tabs. |
 | `js/manager.js` | Manage Page: password, Content, Tags & Categories, Upload (Publish current, Push to GitHub, Upload from file, backups), Updates, Settings, and all GitHub publishing. |
@@ -21,7 +24,7 @@ The repo also has `downloads/` (the Claude skill file and the copy-paste prompts
 ## Rules that keep the hub working
 
 1. **Return the whole file.** Never a snippet, diff, or "insert this here". The hub replaces the file with exactly what is uploaded.
-2. **Raise the version on every code change.** In `index.html`, `var HUB_BUILD = '2026.11.20-8';` and every `?v=2026.11.20-8` on the script tags must be identical. When any `js/` file changes, raise the number (for example to `2026.11.20-9`, or the new date with `-1`) in all nine places and upload `index.html` too. Otherwise browsers keep the old code for up to 10 minutes and open pages never offer the refresh.
+2. **Raise the version on every code change.** In `index.html`, `var HUB_BUILD = '2026.11.20-8';` and every `?v=2026.11.20-8` on the script tags must be identical. When any `js/` file changes, raise the number (for example to the next `-N`, or the new date with `-1`) in all ten places (`HUB_BUILD` plus nine script tags) and upload `index.html` too. Otherwise browsers keep the old code for up to 10 minutes and open pages never offer the refresh.
 3. **Keep `GH_CONFIG` exactly as it is** unless the person is changing the GitHub connection. The token is stored as two base64 halves joined by `.` so GitHub's secret scanning does not block the push. Never write a raw token. To change it, the person uses Manage Page, Settings, "Copy GH_CONFIG line" and pastes that line over the existing one.
 4. **Every publish writes exactly one data file.** Do not add code that writes several files in one action or rewrites `index.html` from the page.
 5. **Never publish a snapshot of the page.** The old hub saved the live page as the new file, which baked an open Manage Page and stuck buttons into the site for everyone. Publishing must only write data built from plain objects.
@@ -29,7 +32,7 @@ The repo also has `downloads/` (the Claude skill file and the copy-paste prompts
 7. **Do not cache data in the browser.** Data files are fetched with `?t=` and `cache: 'no-store'` so everyone sees new publishes. Only small personal settings use storage, always through `Hub.store` (which survives blocked storage).
 8. **Keep the one-time cleanup and freshness logic** in `core.js` (old cache clearing, the publisher's catch-up copy, open-page refresh, code-version check).
 9. **Keep backups before publishing** (`M.backupFile`, `M.pruneBackups`, 3 kept per file) and the stale-write protection (publishing with the version GitHub gave you; GitHub refuses stale writes and Manage Page offers "Load latest").
-10. **Script tags**: index.html must load, in this order, with `defer`: `js/validate.js`, `js/core.js`, `js/analyzer.js`, `js/tab-amc.js`, `js/tab-apps.js`, `js/tab-skills.js`, `js/tab-resources.js`, `js/manager.js`, and keep `<main class="page" id="app">`. The Upload check rejects an index.html missing any of these.
+10. **Script tags**: index.html must load, in this order, with `defer`: `js/validate.js`, `js/core.js`, `js/analyzer.js`, `js/tab-home.js`, `js/tab-amc.js`, `js/tab-apps.js`, `js/tab-skills.js`, `js/tab-resources.js`, `js/manager.js`, and keep `<main class="page" id="app">`. The Upload check rejects an index.html missing any of these.
 11. **External resources**: only Google Fonts (Geist, Geist Mono) and cdn.jsdelivr.net for the analyzer libraries at pinned versions. Do not add other hosts without a reason the person agrees to.
 12. **Plain JavaScript, no build step.** Files are ES5 style functions inside an IIFE (the analyzer uses modern syntax that every current browser runs). No frameworks, no modules, no `import`.
 
@@ -41,6 +44,7 @@ The repo also has `downloads/` (the Claude skill file and the copy-paste prompts
 - Geist for text, Geist Mono for code and table headers. Sentence case. No emojis. No em dashes in any visible text.
 - Card grids for AMC Queries, Apps and Skills; compact link cards for Resources. Search plus separate dropdown buttons (Categories, Tags) and sort; no rows of filter buttons. No description lines under the tab titles.
 - Favicon is the white P on a black square.
+- The site opens on the home page (Featured, Recently opened, Browse); the PLTFRM logo returns to it. Publishing closes Manage Page and lands on the home page.
 
 ## How code reaches the site
 

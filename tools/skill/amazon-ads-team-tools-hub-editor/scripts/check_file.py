@@ -24,22 +24,24 @@ TARGETS = {
     'apps': {'label': 'Apps', 'file': 'apps.json', 'kind': 'data', 'noun': 'app', 'nouns': 'apps'},
     'skills': {'label': 'Skills', 'file': 'skills.json', 'kind': 'data', 'noun': 'skill', 'nouns': 'skills'},
     'resources': {'label': 'Resources', 'file': 'resources.json', 'kind': 'data', 'noun': 'resource', 'nouns': 'resources'},
-    'config': {'label': 'Tags & Categories', 'file': 'config.json', 'kind': 'config', 'noun': 'tag', 'nouns': 'tags'},
+    'config': {'label': 'Home, Tags & Categories', 'file': 'config.json', 'kind': 'config', 'noun': 'tag', 'nouns': 'tags'},
 }
-SITE_FILES = ['index.html', 'js/core.js', 'js/validate.js', 'js/analyzer.js', 'js/tab-amc.js',
+SITE_FILES = ['index.html', 'js/core.js', 'js/validate.js', 'js/analyzer.js', 'js/tab-home.js', 'js/tab-amc.js',
               'js/tab-apps.js', 'js/tab-skills.js', 'js/tab-resources.js', 'js/manager.js']
-REQUIRED_SCRIPTS = ['js/validate.js', 'js/core.js', 'js/analyzer.js', 'js/tab-amc.js', 'js/tab-apps.js',
+REQUIRED_SCRIPTS = ['js/validate.js', 'js/core.js', 'js/analyzer.js', 'js/tab-home.js', 'js/tab-amc.js', 'js/tab-apps.js',
                     'js/tab-skills.js', 'js/tab-resources.js', 'js/manager.js']
 RESERVED_TAGS = ['app', 'skill', 'amc query', 'resource']
 ICON_IDS = ['people-plus', 'path', 'trend', 'list', 'tag', 'bars', 'pie', 'repeat', 'clock', 'calendar',
             'cart', 'dollar', 'target', 'funnel', 'layers', 'search', 'tv', 'star']
 DEFAULT_CATEGORIES = ['Advanced NTB Analysis', 'LTV Analysis', 'Path To Purchase Variations', 'Other']
 SIZE_WARN = 900 * 1024
+FEATURED_MAX = 6
+DATA_TARGETS = ['amc-queries', 'apps', 'skills', 'resources']
 FIELD_NAMES = {'name': 'name', 'url': 'link', 'desc': 'description', 'author': 'author', 'tags': 'tags',
                'skillData': 'skill file', 'skillFileName': 'file name', 'title': 'title', 'type': 'category',
                'summary': 'summary', 'description': 'description', 'sql': 'SQL', 'sqlParts': 'SQL parts',
                'howTo': 'how-to steps', 'requirements': 'requirements', 'useCases': 'use cases',
-               'example': 'example output', 'viz': 'analyzer settings', 'icon': 'icon'}
+               'example': 'example output', 'viz': 'analyzer settings', 'icon': 'icon', 'featured': 'featured items'}
 
 
 def is_obj(v): return isinstance(v, dict)
@@ -206,6 +208,27 @@ def validate_data(target, obj, tags=None):
                         cat_errors += 1
                 if not cat_errors:
                     checks.append(str(len(cats)) + ' AMC categories, all with a name and icon')
+        if 'featured' in obj:
+            fl = obj['featured']
+            if not isinstance(fl, list):
+                errors.append('"featured" (the home page picks) must be a list.')
+            else:
+                seen_f, f_errors = set(), 0
+                if len(fl) > FEATURED_MAX:
+                    errors.append('The home page shows up to ' + str(FEATURED_MAX) + ' featured items; this file has ' + str(len(fl)) + '.')
+                    f_errors += 1
+                for i, f in enumerate(fl):
+                    if not is_obj(f) or f.get('target') not in DATA_TARGETS or not non_empty(f.get('id')):
+                        errors.append('Featured item ' + str(i + 1) + ' needs a "target" (one of ' + ', '.join(DATA_TARGETS) + ') and an "id".')
+                        f_errors += 1
+                        continue
+                    k = f['target'] + ':' + f['id']
+                    if k in seen_f:
+                        errors.append('Featured item ' + str(i + 1) + ' is listed twice (' + f['target'] + ' ' + f['id'] + ').')
+                        f_errors += 1
+                    seen_f.add(k)
+                if not f_errors:
+                    checks.append(str(len(fl)) + ' featured ' + ('item' if len(fl) == 1 else 'items') + ' for the home page')
         return errors, warnings, checks
     if not isinstance(obj.get('items'), list):
         errors.append('"items" must be a list.')
@@ -270,6 +293,11 @@ def diff_config(old, new):
     added = ['tag ' + n for n in nt if n not in ot] + ['category ' + n for n in nc if n not in oc]
     removed = ['tag ' + n for n in ot if n not in nt] + ['category ' + n for n in oc if n not in nc]
     changed = [('category ' + n, changed_fields(oc[n], nc[n])) for n in nc if n in oc and json.dumps(oc[n]) != json.dumps(nc[n])]
+    fkeys = lambda o: [str(f.get('target')) + ':' + str(f.get('id')) for f in (o.get('featured') or []) if is_obj(f)]
+    if sorted(fkeys(old)) != sorted(fkeys(new)):
+        changed.append(('home page featured items', ['featured']))
+    elif fkeys(old) != fkeys(new):
+        changed.append(('home page featured order', ['featured']))
     names = lambda arr: [x.get('name') for x in (arr or []) if is_obj(x)]
     reordered = not added and not removed and (names(old.get('amcCategories')) != names(new.get('amcCategories')) or names(old.get('tags')) != names(new.get('tags')))
     return {'added': added, 'removed': removed, 'changed': changed, 'unchanged': 0, 'reordered': reordered}
@@ -513,6 +541,18 @@ def main():
                     for cat in obj.get('amcCategories', []) or []:
                         if is_obj(cat) and cat.get('icon') not in ICON_IDS:
                             warnings.append('Category "' + str(cat.get('name')) + '": icon "' + str(cat.get('icon')) + '" is not one of the 18 icons; it will show the plain tag icon.')
+                    # featured picks must point at entries that exist (checked when the data files sit next to config.json)
+                    folder = os.path.dirname(os.path.abspath(a.file))
+                    for f in obj.get('featured', []) or []:
+                        if not is_obj(f) or f.get('target') not in DATA_TARGETS: continue
+                        src = os.path.join(folder, f['target'] + '.json')
+                        if os.path.exists(src):
+                            try:
+                                ids = {i.get('id') for i in json.load(open(src, encoding='utf-8')).get('items', []) if is_obj(i)}
+                                if f.get('id') not in ids:
+                                    warnings.append('Featured item ' + f['target'] + ' "' + str(f.get('id')) + '" does not exist in ' + f['target'] + '.json, so the home page will skip it.')
+                            except Exception:
+                                pass
                     cats = [c.get('name') for c in obj.get('amcCategories', []) or [] if is_obj(c)]
                     if 'Other' in cats and cats[-1] != 'Other':
                         warnings.append('"Other" is usually kept last in the categories list.')
@@ -537,7 +577,9 @@ def main():
     if summary is not None:
         print('UPLOAD PREVIEW SHOULD SHOW: ' + summarize(summary))
         for n in summary['added']: print('  + added   ' + n)
-        for n, f in summary['changed']: print('  ~ edited  ' + n + ' (' + ', '.join(sorted({FIELD_NAMES.get(x, x) for x in f})) + ')')
+        for n, f in summary['changed']:
+            shown = sorted({FIELD_NAMES[x] for x in f if x in FIELD_NAMES})   # same field names the hub's preview shows
+            print('  ~ edited  ' + n + ' (' + (', '.join(shown) or 'details') + ')')
         for n in summary['removed']: print('  - removed ' + n)
     print('RESULT: ' + ('NOT READY, fix the errors above' if errors else 'ready to upload' + (' (review the warnings)' if warnings else '')))
     sys.exit(1 if errors else 0)

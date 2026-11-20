@@ -12,7 +12,7 @@
     skillData: 'skill file', skillFileName: 'file name', title: 'title', type: 'category',
     summary: 'summary', description: 'description', sql: 'SQL', sqlParts: 'SQL parts',
     howTo: 'how-to steps', requirements: 'requirements', useCases: 'use cases', example: 'example output',
-    viz: 'analyzer settings', icon: 'icon'
+    viz: 'analyzer settings', icon: 'icon', featured: 'featured items'
   };
 
   var M = Hub.manager = {
@@ -219,7 +219,7 @@
     if (!M.drafts[target]) {
       var pub = M.published(target) || {};
       M.drafts[target] = target === 'config'
-        ? { tags: Hub.clone(pub.tags || []), categories: Hub.clone(pub.amcCategories || []), log: [] }
+        ? { tags: Hub.clone(pub.tags || []), categories: Hub.clone(pub.amcCategories || []), featured: Hub.clone(pub.featured || []), log: [] }
         : { items: Hub.clone(pub.items || []), log: [] };
     }
     return M.drafts[target];
@@ -227,7 +227,7 @@
   M.draftDiff = function (target) {
     var d = M.drafts[target]; if (!d) return null;
     var pub = M.published(target) || {};
-    return target === 'config' ? V.diffConfig(pub, { tags: d.tags, amcCategories: d.categories }) : V.diffItems(target, pub.items, d.items);
+    return target === 'config' ? V.diffConfig(pub, { tags: d.tags, amcCategories: d.categories, featured: d.featured }) : V.diffItems(target, pub.items, d.items);
   };
   M.isDirty = function (target) {
     var d = M.draftDiff(target);
@@ -275,7 +275,7 @@
   M.publishDraft = function (target) {
     var d = M.drafts[target]; if (!d) return Promise.resolve(null);
     var pub = Hub.clone(M.published(target) || { file: target, schemaVersion: 1 });
-    if (target === 'config') { pub.tags = d.tags; pub.amcCategories = d.categories; } else pub.items = d.items;
+    if (target === 'config') { pub.tags = d.tags; pub.amcCategories = d.categories; pub.featured = d.featured; } else pub.items = d.items;
     var diff = M.draftDiff(target);
     var entries = d.log.slice().reverse();
     if (!entries.length) entries = [M.logEntry(target, 'edit', V.TARGETS[target].label + ' updated (' + V.summarizeDiff(diff) + ')')];
@@ -370,7 +370,7 @@
   };
 
   // ---------- manager shell ----------
-  var SECTIONS = [['content', 'Content'], ['tags', 'Tags & Categories'], ['upload', 'Upload'], ['updates', 'Updates'], ['settings', 'Settings']];
+  var SECTIONS = [['content', 'Content'], ['home', 'Home'], ['tags', 'Tags & Categories'], ['upload', 'Upload'], ['updates', 'Updates'], ['settings', 'Settings']];
   var modalEl = null;
 
   M.showManager = function () {
@@ -392,7 +392,7 @@
   // After every successful publish: close Manage Page and go to the home page, like the old site did
   M.finishPublish = function (message) {
     if (modalEl) Hub.closeModal();
-    Hub.go('#' + Hub.TAB_ORDER[0]);
+    Hub.go('#' + Hub.HOME);
     window.scrollTo(0, 0);
     Hub.toast(message);
   };
@@ -404,7 +404,7 @@
     root.innerHTML =
       '<div class="manager-head"><div><h2>Manage Page</h2><p class="who">Signed in as <strong>' + esc(name || 'Someone') + '</strong></p><p class="who">' + connectionNote() + '</p></div></div>' +
       '<div class="seg" role="tablist">' + SECTIONS.map(function (s) {
-        var dirty = s[0] === 'content' ? V.DATA_TARGETS.some(M.isDirty) : s[0] === 'tags' ? M.isDirty('config') : false;
+        var dirty = s[0] === 'content' ? V.DATA_TARGETS.some(M.isDirty) : (s[0] === 'tags' || s[0] === 'home') ? M.isDirty('config') : false;
         return '<button class="seg-btn" type="button" role="tab" data-act="section" data-v="' + s[0] + '" aria-selected="' + (M.section === s[0]) + '">' +
           esc(s[1]) + (dirty ? '<span class="pending" title="Unpublished changes"></span>' : '') + '</button>';
       }).join('') + '</div>' +
@@ -421,6 +421,7 @@
   }
   function sectionHtml() {
     if (M.section === 'content') return contentHtml();
+    if (M.section === 'home') return M.homeHtml();
     if (M.section === 'tags') return M.tagsHtml();
     if (M.section === 'upload') return M.uploadHtml();
     if (M.section === 'updates') return M.updatesHtml();
@@ -883,6 +884,73 @@
     Hub.toast('Publishing ' + V.TARGETS[t].label + '…');
     M.publishDraft(t).then(function () { M.finishPublish('Published ' + V.TARGETS[t].label + '. Live for everyone in about a minute.'); },
       function (e) { M.render(); Hub.toast(e.message + ' Your change is saved as a draft.', true); });
+  });
+
+  // ---------- Home: the featured picks (live in config.json with tags and categories) ----------
+  var featErr = '';   // shown under the slots until the next change
+  function featuredNow() { return M.drafts.config ? M.drafts.config.featured : ((Hub.data.config && Hub.data.config.featured) || []); }
+  function labelOf(target, id) {
+    var it = Hub.findItem(target, id);
+    return it ? (target === 'amc-queries' ? it.title : it.name) : null;
+  }
+  function slotOptions(cur) {
+    var curKey = cur ? cur.target + ':' + cur.id : '';
+    var html = '<option value=""' + (curKey ? '' : ' selected') + '>Empty</option>';
+    if (cur && !labelOf(cur.target, cur.id)) html += '<option value="' + esc(curKey) + '" selected>Removed item (' + esc(cur.id) + ')</option>';
+    V.DATA_TARGETS.forEach(function (t) {
+      var items = M.drafts[t] ? M.drafts[t].items : Hub.items(t);
+      if (!items.length) return;
+      html += '<optgroup label="' + esc(V.TARGETS[t].label) + '">' + items.map(function (it) {
+        var key = t + ':' + it.id;
+        return '<option value="' + esc(key) + '"' + (key === curKey ? ' selected' : '') + '>' + esc(V.itemLabel(t, it)) + '</option>';
+      }).join('') + '</optgroup>';
+    });
+    return html;
+  }
+  M.homeHtml = function () {
+    var f = featuredNow();
+    var rows = [];
+    for (var i = 0; i < V.FEATURED_MAX; i++) {
+      var cur = f[i] || null, missing = cur && !labelOf(cur.target, cur.id);
+      rows.push('<div class="slot-row' + (missing ? ' is-missing' : '') + '"><span class="slot-n">' + (i + 1) + '</span>' +
+        '<select class="input" data-feat-slot="' + i + '" aria-label="Featured slot ' + (i + 1) + '">' + slotOptions(cur) + '</select>' +
+        '<span class="cat-actions"><button class="btn btn-secondary btn-small" type="button" data-act="feat-move" data-i="' + i + '" data-d="-1"' + (!cur || i === 0 ? ' disabled' : '') + ' aria-label="Move up">↑</button>' +
+        '<button class="btn btn-secondary btn-small" type="button" data-act="feat-move" data-i="' + i + '" data-d="1"' + (!cur || i >= f.length - 1 ? ' disabled' : '') + ' aria-label="Move down">↓</button></span></div>' +
+        (missing ? '<p class="field-error slot-warn">This item was removed from the hub, so the home page skips it. Pick another or set it to Empty.</p>' : ''));
+    }
+    return M.pendingBarHtml('config') +
+      '<div class="settings-block"><div class="section-title">Featured on the home page <span class="hint">Up to ' + V.FEATURED_MAX + ', shown in this order</span></div>' +
+      '<p class="note">Pick the tools the team uses most. They can be any mix of AMC queries, apps, skills and resources.</p>' +
+      '<div class="slot-list">' + rows.join('') + '</div><p class="field-error" id="feat-err" role="alert">' + esc(featErr) + '</p></div>';
+  };
+  M.onChange(function (e) {
+    var sel = e.target.closest && e.target.closest('[data-feat-slot]'); if (!sel) return;
+    var i = +sel.getAttribute('data-feat-slot'), val = sel.value, d = M.draft('config');
+    var list = d.featured;
+    featErr = '';
+    if (val) {
+      var parts = val.split(':'), pick = { target: parts[0], id: parts.slice(1).join(':') };
+      if (list.some(function (x, j) { return j !== i && x.target === pick.target && x.id === pick.id; })) {
+        featErr = '"' + labelOf(pick.target, pick.id) + '" is already featured. Pick something else, or use the arrows to change the order.'; M.render(); return;
+      }
+      if (i < list.length) list[i] = pick; else list.push(pick);
+      d.log = d.log.filter(function (x) { return x.action !== 'featured'; });
+      d.log.push(M.logEntry('config', 'featured', 'Updated the home page featured items'));
+    } else if (i < list.length) {
+      list.splice(i, 1);
+      d.log = d.log.filter(function (x) { return x.action !== 'featured'; });
+      d.log.push(M.logEntry('config', 'featured', 'Updated the home page featured items'));
+    }
+    M.render();
+  });
+  M.action('feat-move', function (el) {
+    var i = +el.getAttribute('data-i'), dir = +el.getAttribute('data-d'), d = M.draft('config'), j = i + dir;
+    featErr = '';
+    if (j < 0 || j >= d.featured.length) return;
+    var moved = d.featured.splice(i, 1)[0]; d.featured.splice(j, 0, moved);
+    d.log = d.log.filter(function (x) { return x.action !== 'featured'; });
+    d.log.push(M.logEntry('config', 'featured', 'Updated the home page featured items'));
+    M.render();
   });
 
   // ---------- Tags & Categories (both live in config.json, published together) ----------

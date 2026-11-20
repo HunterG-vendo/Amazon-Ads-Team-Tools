@@ -9,7 +9,8 @@
     loaded: false,
     preview: !!window.HUB_INLINE_DATA,
     tabs: {},          // route id -> tab definition
-    TAB_ORDER: ['amc', 'apps', 'skills', 'resources'],
+    TAB_ORDER: ['amc', 'apps', 'skills', 'resources'],   // header buttons; the home page is reached from the logo
+    HOME: 'home',
     view: {},          // per-tab UI state (search, filters)
     route: { tab: 'amc', sub: '' },
     _handlers: {}
@@ -191,6 +192,22 @@
     return Array.isArray(tags) && tags.length ? '<div class="tags">' + tags.map(Hub.tagHtml).join('') + '</div>' : '';
   };
 
+  // ---------- finding items across tabs, and what this browser opened recently ----------
+  Hub.TYPE_LABEL = { 'amc-queries': 'AMC Query', 'apps': 'App', 'skills': 'Skill', 'resources': 'Resource' };
+  Hub.findItem = function (target, id) {
+    return Hub.items(target).filter(function (x) { return String(x.id) === String(id); })[0] || null;
+  };
+  var RECENT_KEY = 'pltfrm_recent', RECENT_MAX = 12;
+  Hub.noteOpened = function (target, id) {
+    if (!target || !id) return;
+    var list = Hub.recentList().filter(function (r) { return !(r.target === target && r.id === String(id)); });
+    list.unshift({ target: target, id: String(id), at: Date.now() });
+    Hub.store.set(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX)));
+  };
+  Hub.recentList = function () {
+    try { var v = JSON.parse(Hub.store.get(RECENT_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+  };
+
   // ---------- data ----------
   Hub.items = function (target) { var d = Hub.data[target]; return d && Array.isArray(d.items) ? d.items : []; };
   Hub.setData = function (target, obj) {
@@ -330,7 +347,7 @@
     var h = Hub.currentHash().replace(/^#\/?/, '');
     try { h = decodeURIComponent(h); } catch (e) { /* keep raw */ }
     var parts = h.split('/'), tab = parts[0], sub = parts.slice(1).join('/');
-    if (!Hub.tabs[tab]) { tab = Hub.TAB_ORDER[0]; sub = ''; }
+    if (!Hub.tabs[tab]) { tab = Hub.HOME; sub = ''; }
     return { tab: tab, sub: sub };
   };
   Hub.go = function (hash) {
@@ -365,7 +382,7 @@
     if (!Hub.loaded) { app.innerHTML = '<div class="state-msg">Loading tools…</div>'; return; }
     var tab = Hub.tabs[Hub.route.tab];
     app.className = 'page tab-' + tab.id;
-    document.title = tab.label + ' | PLTFRM Team Tools';
+    document.title = tab.id === Hub.HOME ? 'PLTFRM Team Tools' : tab.label + ' | PLTFRM Team Tools';
     if (Hub.loadErrors[tab.target]) {
       app.innerHTML = '<div class="tab-head"><h1>' + Hub.esc(tab.label) + '</h1></div><div class="state-msg"><strong>This tab could not load.</strong><br>' +
         Hub.esc(Hub.loadErrors[tab.target]) + '<br>Refresh the page. If it keeps happening, a manager can re-upload the file from Manage Page, Upload.</div>';
@@ -519,6 +536,9 @@
     app.querySelector('[data-role="q"]').addEventListener('input', function () { st.q = this.value; draw(); });
     app.querySelector('[data-role="sort"]').addEventListener('change', function () { st.sort = this.value; draw(); });
     Hub.wireFilter(app, groups, st.filters, draw);
+    grid.addEventListener('click', function (e) {
+      var el = e.target.closest('[data-id]'); if (el) Hub.noteOpened(opts.target, el.getAttribute('data-id'));
+    });
     if (opts.onClick) grid.addEventListener('click', function (e) {
       var el = e.target.closest('[data-id]'); if (!el) return;
       var id = el.getAttribute('data-id');
@@ -568,6 +588,7 @@
     return true;
   };
   Hub.openSkill = function (item) {
+    Hub.noteOpened('skills', item.id);
     var hasFile = !!item.skillData, link = V.isHttpUrl(item.url) ? item.url : '';
     var html =
       '<div class="modal-kicker">' + Hub.icon('skill').replace('<svg', '<svg width="13" height="13"') + 'Claude skill</div>' +

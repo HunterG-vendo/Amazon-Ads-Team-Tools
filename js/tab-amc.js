@@ -111,6 +111,7 @@
       return;
     }
     document.title = q.title + ' | AMC Queries';
+    Hub.noteOpened('amc-queries', q.id);
     var parts = sqlParts(q);
     var pi = Math.min(st.part[q.id] || 0, parts.length - 1);
     var cat = catOf(q);

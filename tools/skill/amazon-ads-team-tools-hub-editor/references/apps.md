@@ -32,6 +32,10 @@ Browser tools built by the team (mostly GitHub Pages sites). Each card opens its
 
 For a new app you need: name, link, a description (offer a draft if they explain what it does), author, and which tags apply (offer the list). If they want a tag that does not exist, tell them to add it under Manage Page, Tags & Categories (or a `config.json` upload) first, or accept that it will show without being in the Tags filter.
 
+## Featured on the home page
+
+If an entry you remove (or whose id the person insists on changing) is one of the home page's Featured picks, the home page will skip it. Say so in your reply and suggest choosing a replacement in Manage Page, Home.
+
 ## Checklist
 
 - [ ] Complete file, same count plus additions minus removals.
