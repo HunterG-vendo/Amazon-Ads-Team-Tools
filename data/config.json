@@ -1,7 +1,7 @@
 {
   "file": "config",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-20T22:04:10.571Z",
+  "updatedAt": "2026-11-20T22:06:31.169Z",
   "updatedBy": "Hunter G",
   "tags": [
     {
@@ -39,9 +39,6 @@
     {
       "name": "SQL",
       "color": "#fff833"
-    },
-    {
-      "name": "test"
     }
   ],
   "amcCategories": [
@@ -63,6 +60,15 @@
     }
   ],
   "log": [
+    {
+      "id": "umwpj3rz8suk7",
+      "time": "2026-11-20T22:06:28.196Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "tag-removed",
+      "target": "config",
+      "text": "Removed tag \"test\""
+    },
     {
       "id": "umwpj0q0hhfwo",
       "time": "2026-11-20T22:04:05.681Z",
