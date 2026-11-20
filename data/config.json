@@ -1,8 +1,8 @@
 {
   "file": "config",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-20T20:10:45.000Z",
-  "updatedBy": "Migration",
+  "updatedAt": "2026-11-20T22:58:02.160Z",
+  "updatedBy": "Hunter G",
   "tags": [
     {
       "name": "Report Analyzers",
@@ -61,20 +61,8 @@
   ],
   "featured": [
     {
-      "target": "amc-queries",
-      "id": "true-nb-roas"
-    },
-    {
       "target": "apps",
       "id": "t1783026537088"
-    },
-    {
-      "target": "amc-queries",
-      "id": "ntb-campaign"
-    },
-    {
-      "target": "apps",
-      "id": "t1780436791418"
     },
     {
       "target": "skills",
@@ -82,10 +70,31 @@
     },
     {
       "target": "resources",
-      "id": "t1791700000004"
+      "id": "t1791700000003"
+    },
+    {
+      "target": "skills",
+      "id": "t1795214109812"
+    },
+    {
+      "target": "amc-queries",
+      "id": "true-lifetime-ltv"
+    },
+    {
+      "target": "skills",
+      "id": "t1795214109810"
     }
   ],
   "log": [
+    {
+      "id": "umwpky1f4k4aa",
+      "time": "2026-11-20T22:57:59.728Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "featured",
+      "target": "config",
+      "text": "Updated the home page featured items"
+    },
     {
       "id": "u1791496266626",
       "time": "2026-10-08T21:51:06.626Z",
