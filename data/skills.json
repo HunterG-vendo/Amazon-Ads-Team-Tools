@@ -1,7 +1,7 @@
 {
   "file": "skills",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T22:11:03.328Z",
+  "updatedAt": "2026-11-24T22:13:21.011Z",
   "updatedBy": "Hunter G",
   "items": [
     {
@@ -39,7 +39,7 @@
       "name": "SQP Reports",
       "url": "",
       "desc": "Pulls Search Query Performance reports from Seller Central Brand Analytics for one or many weeks, months or quarters, then files them into the brand's SQP folder. Runs in Chrome through Claude in Chrome on a logged-in Seller Central session.",
-      "author": "Hunter G.",
+      "author": "Matan L.",
       "tags": [
         "Reporting"
       ],
@@ -90,6 +90,15 @@
     }
   ],
   "log": [
+    {
+      "id": "umwv9403q399a",
+      "time": "2026-11-24T22:13:19.622Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "edited",
+      "target": "skills",
+      "text": "Edited \"SQP Reports\" in Skills: author"
+    },
     {
       "id": "umwv90zm7rbsp",
       "time": "2026-11-24T22:10:59.023Z",
