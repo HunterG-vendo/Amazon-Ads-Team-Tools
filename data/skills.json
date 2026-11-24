@@ -1,7 +1,7 @@
 {
   "file": "skills",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T22:13:37.339Z",
+  "updatedAt": "2026-11-24T22:14:05.207Z",
   "updatedBy": "Hunter G",
   "items": [
     {
@@ -66,7 +66,7 @@
       "name": "AMC SQL",
       "url": "",
       "desc": "Writes and debugs Amazon Marketing Cloud SQL, including NTB, path to conversion, reach and frequency, blended CAC and Prime Video Insights queries, and reconciles AMC output against the DSP and Sponsored Ads consoles.",
-      "author": "Hunter G.",
+      "author": "Matan L.",
       "tags": [
         "AMC",
         "SQL"
@@ -90,6 +90,15 @@
     }
   ],
   "log": [
+    {
+      "id": "umwv94y65p15n",
+      "time": "2026-11-24T22:14:03.773Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "edited",
+      "target": "skills",
+      "text": "Edited \"AMC SQL\" in Skills: author"
+    },
     {
       "id": "umwv94cpix19j",
       "time": "2026-11-24T22:13:35.958Z",
