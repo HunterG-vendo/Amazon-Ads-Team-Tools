@@ -1,8 +1,8 @@
 {
   "file": "resources",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-20T20:10:45.000Z",
-  "updatedBy": "Migration",
+  "updatedAt": "2026-11-24T22:16:19.794Z",
+  "updatedBy": "Hunter G",
   "items": [
     {
       "id": "t1791700000001",
@@ -35,7 +35,25 @@
       "desc": "Playbook for planning and running tentpole events like T12, Black Friday, and Cyber Monday.",
       "author": "PLTFRM",
       "tags": []
+    },
+    {
+      "tags": [],
+      "name": "Amazon Advertising Sharepoint",
+      "url": "https://onepltfrm.sharepoint.com/:f:/r/sites/DigitalAdvertising/Shared%20Documents/Amazon%20Advertising?d=wba67f4941df17ac39f227bb49dcdf1c6&csf=1&web=1&e=tOw4dH",
+      "desc": "",
+      "author": "",
+      "id": "tmwv97u5p6c4q"
     }
   ],
-  "log": []
+  "log": [
+    {
+      "id": "umwv97u5pjya2",
+      "time": "2026-11-24T22:16:18.541Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "added",
+      "target": "resources",
+      "text": "Added \"Amazon Advertising Sharepoint\" to Resources"
+    }
+  ]
 }
