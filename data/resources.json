@@ -1,7 +1,7 @@
 {
   "file": "resources",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T22:16:19.794Z",
+  "updatedAt": "2026-11-24T22:18:33.604Z",
   "updatedBy": "Hunter G",
   "items": [
     {
@@ -40,12 +40,21 @@
       "tags": [],
       "name": "Amazon Advertising Sharepoint",
       "url": "https://onepltfrm.sharepoint.com/:f:/r/sites/DigitalAdvertising/Shared%20Documents/Amazon%20Advertising?d=wba67f4941df17ac39f227bb49dcdf1c6&csf=1&web=1&e=tOw4dH",
-      "desc": "",
-      "author": "",
+      "desc": "Sharepoint folder for all Amazon Advertising folders.",
+      "author": "PLTFRM",
       "id": "tmwv97u5p6c4q"
     }
   ],
   "log": [
+    {
+      "id": "umwv9aphl3c84",
+      "time": "2026-11-24T22:18:32.457Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "edited",
+      "target": "resources",
+      "text": "Edited \"Amazon Advertising Sharepoint\" in Resources: description, author"
+    },
     {
       "id": "umwv97u5pjya2",
       "time": "2026-11-24T22:16:18.541Z",
