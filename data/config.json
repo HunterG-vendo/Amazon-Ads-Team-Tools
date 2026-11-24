@@ -1,8 +1,8 @@
 {
   "file": "config",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T20:22:46.915Z",
-  "updatedBy": "Jamie Grossman",
+  "updatedAt": "2026-11-24T22:17:32.526Z",
+  "updatedBy": "Hunter G",
   "tags": [
     {
       "name": "Report Analyzers",
@@ -70,6 +70,10 @@
     },
     {
       "target": "resources",
+      "id": "tmwv97u5p6c4q"
+    },
+    {
+      "target": "resources",
       "id": "t1791700000003"
     },
     {
@@ -79,13 +83,18 @@
     {
       "target": "amc-queries",
       "id": "true-lifetime-ltv"
-    },
-    {
-      "target": "skills",
-      "id": "t1795214109810"
     }
   ],
   "log": [
+    {
+      "id": "umwv98rjjlz3k",
+      "time": "2026-11-24T22:17:01.807Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "featured",
+      "target": "config",
+      "text": "Updated the home page featured items"
+    },
     {
       "id": "umwv55rvxnncu",
       "time": "2026-11-24T20:22:43.821Z",
