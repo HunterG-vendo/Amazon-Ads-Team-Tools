@@ -1,7 +1,7 @@
 {
   "file": "skills",
   "schemaVersion": 1,
-  "updatedAt": "2026-11-24T22:13:21.011Z",
+  "updatedAt": "2026-11-24T22:13:37.339Z",
   "updatedBy": "Hunter G",
   "items": [
     {
@@ -51,7 +51,7 @@
       "name": "Placement Analysis",
       "url": "",
       "desc": "Turns a Sponsored Products or Sponsored Brands placement report into bid multiplier decisions: Top of Search vs Rest of Search vs Product Pages efficiency, wasted spend to cut, and raise or cut calls by campaign, with a PLTFRM chart.",
-      "author": "Hunter G.",
+      "author": "Matan L.",
       "tags": [
         "Report Analyzers",
         "PPC",
@@ -90,6 +90,15 @@
     }
   ],
   "log": [
+    {
+      "id": "umwv94cpix19j",
+      "time": "2026-11-24T22:13:35.958Z",
+      "actor": "Hunter G",
+      "device": "Chrome on Mac",
+      "action": "edited",
+      "target": "skills",
+      "text": "Edited \"Placement Analysis\" in Skills: author"
+    },
     {
       "id": "umwv9403q399a",
       "time": "2026-11-24T22:13:19.622Z",
